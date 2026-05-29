@@ -7,17 +7,17 @@ export const routes: Routes = [
   {
     path: '',
     component: LandingComponent,
-    title: 'Dental Clinick | Welcome'
+    title: 'داشبورد کلینیک دندان‌پزشکی | خوش آمدید'
   },
   {
     path: 'login',
     component: LoginComponent,
-    title: 'Dental Clinick | Login'
+    title: 'داشبورد کلینیک دندان‌پزشکی | ورود'
   },
   {
     path: 'register',
     component: RegisterComponent,
-    title: 'Dental Clinick | Register'
+    title: 'داشبورد کلینیک دندان‌پزشکی | ثبت‌نام'
   },
   {
     path: '**',

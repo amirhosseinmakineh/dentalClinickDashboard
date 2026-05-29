@@ -1,14 +1,14 @@
 <main class="auth-page" aria-labelledby="login-title">
   <section class="auth-card mat-elevation-z3">
     <div class="auth-heading">
-      <p class="eyebrow">Welcome back</p>
-      <h1 id="login-title">Login to Dental Clinick</h1>
-      <p>Enter your clinic phone number and password to continue.</p>
+      <p class="eyebrow">خوش آمدید</p>
+      <h1 id="login-title">ورود به داشبورد کلینیک دندان‌پزشکی</h1>
+      <p>برای ادامه، شماره موبایل کلینیک و رمز عبور خود را وارد کنید.</p>
     </div>
 
     <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="field-group">
-        <label for="phoneNumber">Phone number</label>
+        <label for="phoneNumber">شماره موبایل</label>
         <input
           id="phoneNumber"
           type="tel"
@@ -16,48 +16,28 @@
           inputmode="numeric"
           autocomplete="tel"
           placeholder="09123456789"
-          aria-describedby="phoneNumber-error"
         />
-        <p id="phoneNumber-error" class="field-error" aria-live="polite">
-          @if (hasError('phoneNumber', 'required')) {
-            Phone number is required.
-          } @else if (hasError('phoneNumber', 'pattern')) {
-            Use a valid 11-digit mobile number that starts with 09.
-          }
-        </p>
       </div>
 
       <div class="field-group">
-        <label for="password">Password</label>
+        <label for="password">رمز عبور</label>
         <input
           id="password"
           type="password"
           formControlName="password"
           autocomplete="current-password"
-          placeholder="At least 8 characters"
-          aria-describedby="password-error"
+          placeholder="حداقل ۸ کاراکتر"
         />
-        <p id="password-error" class="field-error" aria-live="polite">
-          @if (hasError('password', 'required')) {
-            Password is required.
-          } @else if (hasError('password', 'minlength')) {
-            Password must be at least 8 characters.
-          }
-        </p>
       </div>
 
-      @if (submitError) {
-        <p class="submit-error" role="alert">{{ submitError }}</p>
-      }
-
       <app-button type="submit" [disabled]="isSubmitting" [fullWidth]="true">
-        {{ isSubmitting ? 'Signing in...' : 'Login' }}
+        {{ isSubmitting ? 'در حال ورود...' : 'ورود' }}
       </app-button>
     </form>
 
     <p class="switch-auth">
-      New to Dental Clinick?
-      <a routerLink="/register">Create an account</a>
+      حساب کاربری ندارید؟
+      <a routerLink="/register">ثبت‌نام کنید</a>
     </p>
   </section>
 </main>

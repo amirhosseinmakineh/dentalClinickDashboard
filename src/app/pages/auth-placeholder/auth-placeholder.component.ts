@@ -11,5 +11,5 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 export class AuthPlaceholderComponent {
   private readonly route = inject(ActivatedRoute);
 
-  readonly mode = this.route.snapshot.data['mode'] === 'register' ? 'Register' : 'Login';
+  readonly mode = this.route.snapshot.data['mode'] === 'register' ? 'ثبت‌نام' : 'ورود';
 }

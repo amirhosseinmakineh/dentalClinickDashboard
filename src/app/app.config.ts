@@ -3,6 +3,7 @@ import { ApplicationConfig, importProvidersFrom, provideBrowserGlobalErrorListen
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter } from '@angular/router';
 import { MatDialogModule } from '@angular/material/dialog';
+import { provideToastr } from 'ngx-toastr';
 
 import { routes } from './app.routes';
 
@@ -13,6 +14,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(),
     provideAnimationsAsync(),
+    provideToastr({
+      closeButton: true,
+      positionClass: 'toast-top-center',
+      progressBar: true,
+      timeOut: 5000
+    }),
     importProvidersFrom(MatDialogModule)
   ]
 };
