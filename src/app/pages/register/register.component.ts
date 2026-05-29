@@ -1,11 +1,18 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
 
 import { Gender } from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { ButtonComponent } from '../../shared/button/button.component';
+
+interface GenderOption {
+  value: Gender;
+  label: string;
+}
 
 @Component({
   selector: 'app-register',
@@ -17,8 +24,13 @@ export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toastr = inject(ToastrService);
 
-  readonly genders: Gender[] = ['Female', 'Male', 'Other'];
+  readonly genderOptions: GenderOption[] = [
+    { value: 'Female', label: 'زن' },
+    { value: 'Male', label: 'مرد' },
+    { value: 'Other', label: 'سایر' }
+  ];
   readonly today = new Date().toISOString().split('T')[0];
 
   readonly form = this.fb.nonNullable.group({
@@ -31,15 +43,15 @@ export class RegisterComponent {
   });
 
   isSubmitting = false;
-  submitError = '';
 
   submit(): void {
+    this.form.markAllAsTouched();
+
     if (this.form.invalid) {
-      this.form.markAllAsTouched();
+      this.showValidationErrors();
       return;
     }
 
-    this.submitError = '';
     this.isSubmitting = true;
 
     this.authService.register(this.form.getRawValue())
@@ -52,16 +64,87 @@ export class RegisterComponent {
             localStorage.setItem('authToken', token);
           }
 
+          this.toastr.success('حساب کاربری شما با موفقیت ایجاد شد.', 'ثبت‌نام موفق');
           void this.router.navigateByUrl(this.authService.getRedirectUrl(response));
         },
-        error: () => {
-          this.submitError = 'We could not create your account. Please review the form and try again.';
+        error: (error: unknown) => {
+          this.toastr.error(this.getRegisterErrorMessage(error), 'خطا در ثبت‌نام');
         }
       });
   }
 
-  hasError(controlName: 'firstName' | 'lastName' | 'phoneNumber' | 'password' | 'gender' | 'birthDate', errorName: string): boolean {
-    const control = this.form.controls[controlName];
-    return control.hasError(errorName) && (control.dirty || control.touched);
+  private showValidationErrors(): void {
+    const messages: string[] = [];
+    const { firstName, lastName, phoneNumber, password, gender, birthDate } = this.form.controls;
+
+    if (firstName.hasError('required')) {
+      messages.push('نام را وارد کنید.');
+    } else if (firstName.hasError('minlength')) {
+      messages.push('نام باید حداقل ۲ کاراکتر باشد.');
+    } else if (firstName.hasError('maxlength')) {
+      messages.push('نام باید حداکثر ۵۰ کاراکتر باشد.');
+    } else if (firstName.hasError('pattern')) {
+      messages.push('نام فقط می‌تواند شامل حروف، فاصله، خط تیره یا آپاستروف باشد.');
+    }
+
+    if (lastName.hasError('required')) {
+      messages.push('نام خانوادگی را وارد کنید.');
+    } else if (lastName.hasError('minlength')) {
+      messages.push('نام خانوادگی باید حداقل ۲ کاراکتر باشد.');
+    } else if (lastName.hasError('maxlength')) {
+      messages.push('نام خانوادگی باید حداکثر ۵۰ کاراکتر باشد.');
+    } else if (lastName.hasError('pattern')) {
+      messages.push('نام خانوادگی فقط می‌تواند شامل حروف، فاصله، خط تیره یا آپاستروف باشد.');
+    }
+
+    if (phoneNumber.hasError('required')) {
+      messages.push('شماره موبایل را وارد کنید.');
+    } else if (phoneNumber.hasError('pattern')) {
+      messages.push('شماره موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.');
+    }
+
+    if (password.hasError('required')) {
+      messages.push('رمز عبور را وارد کنید.');
+    } else if (password.hasError('minlength')) {
+      messages.push('رمز عبور باید حداقل ۸ کاراکتر باشد.');
+    } else if (password.hasError('maxlength')) {
+      messages.push('رمز عبور باید حداکثر ۶۴ کاراکتر باشد.');
+    } else if (password.hasError('pattern')) {
+      messages.push('رمز عبور باید حداقل شامل یک حرف و یک عدد باشد.');
+    }
+
+    if (gender.hasError('required')) {
+      messages.push('جنسیت را انتخاب کنید.');
+    }
+
+    if (birthDate.hasError('required')) {
+      messages.push('تاریخ تولد را وارد کنید.');
+    } else if (birthDate.hasError('pattern')) {
+      messages.push('تاریخ تولد باید با قالب YYYY-MM-DD وارد شود.');
+    }
+
+    this.toastr.error(messages.join('\n'), 'خطا در اعتبارسنجی');
+  }
+
+  private getRegisterErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) {
+        return 'ارتباط با سرور برقرار نشد. لطفاً اتصال اینترنت یا وضعیت سرور را بررسی کنید.';
+      }
+
+      if (error.status === 400) {
+        return 'اطلاعات واردشده معتبر نیست. لطفاً فرم را بررسی کنید و دوباره تلاش کنید.';
+      }
+
+      if (error.status === 409) {
+        return 'این شماره موبایل قبلاً ثبت شده است.';
+      }
+
+      if (error.status >= 500) {
+        return 'در سرور مشکلی رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.';
+      }
+    }
+
+    return 'امکان ایجاد حساب وجود ندارد. لطفاً اطلاعات را بررسی کنید و دوباره تلاش کنید.';
   }
 }

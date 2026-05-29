@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -16,6 +18,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toastr = inject(ToastrService);
 
   readonly form = this.fb.nonNullable.group({
     phoneNumber: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],
@@ -23,15 +26,15 @@ export class LoginComponent {
   });
 
   isSubmitting = false;
-  submitError = '';
 
   submit(): void {
+    this.form.markAllAsTouched();
+
     if (this.form.invalid) {
-      this.form.markAllAsTouched();
+      this.showValidationErrors();
       return;
     }
 
-    this.submitError = '';
     this.isSubmitting = true;
 
     this.authService.login(this.form.getRawValue())
@@ -44,16 +47,49 @@ export class LoginComponent {
             localStorage.setItem('authToken', token);
           }
 
+          this.toastr.success('ورود شما با موفقیت انجام شد.', 'ورود موفق');
           void this.router.navigateByUrl(this.authService.getRedirectUrl(response));
         },
-        error: () => {
-          this.submitError = 'We could not sign you in. Please check your phone number and password.';
+        error: (error: unknown) => {
+          this.toastr.error(this.getLoginErrorMessage(error), 'خطا در ورود');
         }
       });
   }
 
-  hasError(controlName: 'phoneNumber' | 'password', errorName: string): boolean {
-    const control = this.form.controls[controlName];
-    return control.hasError(errorName) && (control.dirty || control.touched);
+  private showValidationErrors(): void {
+    const messages: string[] = [];
+    const { phoneNumber, password } = this.form.controls;
+
+    if (phoneNumber.hasError('required')) {
+      messages.push('شماره موبایل را وارد کنید.');
+    } else if (phoneNumber.hasError('pattern')) {
+      messages.push('شماره موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.');
+    }
+
+    if (password.hasError('required')) {
+      messages.push('رمز عبور را وارد کنید.');
+    } else if (password.hasError('minlength')) {
+      messages.push('رمز عبور باید حداقل ۸ کاراکتر باشد.');
+    }
+
+    this.toastr.error(messages.join('\n'), 'خطا در اعتبارسنجی');
+  }
+
+  private getLoginErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) {
+        return 'ارتباط با سرور برقرار نشد. لطفاً اتصال اینترنت یا وضعیت سرور را بررسی کنید.';
+      }
+
+      if (error.status === 401 || error.status === 403) {
+        return 'شماره موبایل یا رمز عبور نادرست است.';
+      }
+
+      if (error.status >= 500) {
+        return 'در سرور مشکلی رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.';
+      }
+    }
+
+    return 'امکان ورود وجود ندارد. لطفاً اطلاعات را بررسی کنید و دوباره تلاش کنید.';
   }
 }
