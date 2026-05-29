@@ -1,0 +1,27 @@
+:host {
+  display: inline-block;
+}
+
+:host:has(.app-button--full) {
+  display: block;
+  width: 100%;
+}
+
+.app-button {
+  min-height: 3.25rem;
+  border-radius: 999px;
+  padding-inline: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.app-button--full {
+  width: 100%;
+}
+
+.app-button:hover:not(:disabled),
+.app-button:focus-visible:not(:disabled) {
+  transform: translateY(-0.12rem);
+  box-shadow: 0 0.875rem 1.75rem rgba(25, 118, 210, 0.16);
+}

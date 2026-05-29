@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
-import { AuthPlaceholderComponent } from './pages/auth-placeholder/auth-placeholder.component';
 import { LandingComponent } from './pages/landing/landing.component';
+import { LoginComponent } from './pages/login/login.component';
+import { RegisterComponent } from './pages/register/register.component';
 
 export const routes: Routes = [
   {
@@ -10,15 +11,13 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    component: AuthPlaceholderComponent,
-    title: 'Dental Clinick | Login',
-    data: { mode: 'login' }
+    component: LoginComponent,
+    title: 'Dental Clinick | Login'
   },
   {
     path: 'register',
-    component: AuthPlaceholderComponent,
-    title: 'Dental Clinick | Register',
-    data: { mode: 'register' }
+    component: RegisterComponent,
+    title: 'Dental Clinick | Register'
   },
   {
     path: '**',
