@@ -1,6 +1,6 @@
 # Dental Clinick Dashboard
 
-Angular 20 dashboard starter with Angular Material, a global white-blue visual system, and a responsive landing route.
+Angular 20 dashboard starter with Angular Material, a global white-blue visual system, responsive landing route, and authentication pages.
 
 ## Setup
 
@@ -12,5 +12,5 @@ npm start
 ## Implemented routes
 
 - `/` — responsive landing page with Login and Register actions.
-- `/login` — placeholder route for the next authentication phase.
-- `/register` — placeholder route for the next authentication phase.
+- `/login` — responsive login page that validates phone/password and submits to the `LoginCommand` API.
+- `/register` — responsive registration page that validates user profile fields and submits to the `CreateUserCommand` API.
