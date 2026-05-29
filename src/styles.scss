@@ -1,0 +1,96 @@
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+
+:root {
+  color-scheme: light;
+  --app-blue-50: #eef6ff;
+  --app-blue-100: #d7eaff;
+  --app-blue-500: #1976d2;
+  --app-blue-700: #0d47a1;
+  --app-surface: #ffffff;
+  --app-text: #102a43;
+  --app-muted: #5d7280;
+  --app-border: rgba(25, 118, 210, 0.14);
+  --app-radius: 1rem;
+  --app-shadow: 0 1rem 2.5rem rgba(13, 71, 161, 0.12);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--app-blue-50);
+  color: var(--app-text);
+  font-family: inherit;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+a[mat-button],
+a[mat-flat-button],
+a[mat-stroked-button] {
+  font-family: inherit;
+}
+
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+}
+
+.responsive-table {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  background: var(--app-surface);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--app-border);
+  text-align: start;
+}
+
+th {
+  color: var(--app-blue-700);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 599px) {
+  :root {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 959px) {
+  :root {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    font-size: 17px;
+  }
+}
