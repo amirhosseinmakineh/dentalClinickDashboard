@@ -1,0 +1,22 @@
+<aside class="sidebar" [class.is-closed]="!isOpen" aria-label="منوی داشبورد">
+  <div class="brand">
+    <span class="brand-mark">🦷</span>
+    <div>
+      <strong>{{ title }}</strong>
+      <small>{{ roleLabel }}</small>
+    </div>
+    <button class="mobile-close" type="button" aria-label="بستن منو" (click)="closeSidebar.emit()">×</button>
+  </div>
+
+  <nav class="nav-list">
+    @for (item of items; track item.label) {
+      <button type="button" class="nav-item">
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+        @if (item.badge) {
+          <small>{{ item.badge }}</small>
+        }
+      </button>
+    }
+  </nav>
+</aside>

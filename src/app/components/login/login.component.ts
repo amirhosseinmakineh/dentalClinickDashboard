@@ -1,10 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
 
+import { AuthSession } from '../../base/auth-session';
+import { getBackendErrorMessage, getResponseMessage, isSuccessfulResponse } from '../../base/api-response.models';
 import { AuthService } from '../../services/auth.service';
 import { ButtonComponent } from '../button/button.component';
 
@@ -41,14 +42,18 @@ export class LoginComponent {
       .pipe(finalize(() => this.isSubmitting = false))
       .subscribe({
         next: (response) => {
-          const token = response.accessToken ?? response.token;
-
-          if (token) {
-            localStorage.setItem('authToken', token);
+          if (!isSuccessfulResponse(response)) {
+            this.toastr.error(getResponseMessage(response, 'امکان ورود وجود ندارد. لطفاً اطلاعات را بررسی کنید و دوباره تلاش کنید.'), 'خطا در ورود');
+            return;
           }
 
-          this.toastr.success('ورود شما با موفقیت انجام شد.', 'ورود موفق');
-          void this.router.navigateByUrl(this.authService.getRedirectUrl(response));
+          AuthSession.persistLogin(response);
+          const user = AuthSession.getUser();
+          const welcomeName = user?.firstName ? `، ${user.firstName}` : '';
+          const message = getResponseMessage(response, `به داشبورد کلینیک خوش آمدید${welcomeName}.`);
+
+          this.toastr.success(message, 'ورود موفق');
+          void this.router.navigateByUrl(AuthSession.getPostLoginRedirectUrl());
         },
         error: (error: unknown) => {
           this.toastr.error(this.getLoginErrorMessage(error), 'خطا در ورود');
@@ -76,20 +81,6 @@ export class LoginComponent {
   }
 
   private getLoginErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 0) {
-        return 'ارتباط با سرور برقرار نشد. لطفاً اتصال اینترنت یا وضعیت سرور را بررسی کنید.';
-      }
-
-      if (error.status === 401 || error.status === 403) {
-        return 'شماره موبایل یا رمز عبور نادرست است.';
-      }
-
-      if (error.status >= 500) {
-        return 'در سرور مشکلی رخ داده است. لطفاً کمی بعد دوباره تلاش کنید.';
-      }
-    }
-
-    return 'امکان ورود وجود ندارد. لطفاً اطلاعات را بررسی کنید و دوباره تلاش کنید.';
+    return getBackendErrorMessage(error, 'امکان ورود وجود ندارد. لطفاً اطلاعات را بررسی کنید و دوباره تلاش کنید.');
   }
 }
