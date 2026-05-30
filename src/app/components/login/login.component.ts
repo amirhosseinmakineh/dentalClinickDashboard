@@ -7,6 +7,7 @@ import { finalize } from 'rxjs';
 import { AuthSession } from '../../base/auth-session';
 import { getBackendErrorMessage, getResponseMessage, isSuccessfulResponse } from '../../base/api-response.models';
 import { AuthService } from '../../services/auth.service';
+import { TokenService } from '../../services/token.service';
 import { ButtonComponent } from '../button/button.component';
 
 @Component({
@@ -20,6 +21,7 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toastr = inject(ToastrService);
+  private readonly tokenService = inject(TokenService);
 
   readonly form = this.fb.nonNullable.group({
     phoneNumber: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],

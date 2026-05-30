@@ -8,6 +8,8 @@ import { AuthResponse, LoginCommand, RegisterCommand } from '../models/auth.mode
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly tokenService = inject(TokenService);
+  private readonly roleService = inject(RoleService);
   private readonly baseUrl = '/api';
 
   login(command: LoginCommand): Observable<BaseResponse<AuthResponse>> {
