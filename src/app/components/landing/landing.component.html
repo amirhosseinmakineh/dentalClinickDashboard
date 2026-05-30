@@ -1,14 +1,27 @@
 <main class="landing-page" aria-labelledby="landing-title">
   <section class="hero-card mat-elevation-z3">
-    <p class="eyebrow">داشبورد کلینیک دندان‌پزشکی</p>
-    <h1 id="landing-title">به محیط کاری کلینیک خود خوش آمدید</h1>
+    <p class="eyebrow">DentalDashboard</p>
+    <h1 id="landing-title">مدیریت هوشمند کلینیک دندان‌پزشکی</h1>
     <p class="hero-copy">
-      عملیات کلینیک دندان‌پزشکی را در یک داشبورد تمیز، واکنش‌گرا و مناسب همه اندازه‌های صفحه مدیریت کنید.
+      تجربه‌ای آبی و سفید، ریسپانسیو و مدرن برای مدیریت نقش‌های ادمین، منشی، مشاور، بیمار و کاربر عادی.
     </p>
 
-    <div class="action-row" aria-label="اقدام‌های احراز هویت">
-      <a mat-flat-button color="primary" class="hero-action" routerLink="/login">ورود</a>
-      <a mat-stroked-button color="primary" class="hero-action" routerLink="/register">ثبت‌نام</a>
-    </div>
+    @if (isAuthenticated) {
+      <div class="welcome-panel">
+        <span>👋</span>
+        <div>
+          <strong>{{ user?.firstName || 'کاربر' }} {{ user?.lastName || '' }} خوش آمدید</strong>
+          <small>نقش شما تشخیص داده شده و داشبورد اختصاصی آماده است.</small>
+        </div>
+      </div>
+      <div class="action-row single" aria-label="ورود به داشبورد">
+        <a mat-flat-button color="primary" class="hero-action" [routerLink]="dashboardUrl">ورود به داشبورد من</a>
+      </div>
+    } @else {
+      <div class="action-row" aria-label="اقدام‌های احراز هویت">
+        <a mat-flat-button color="primary" class="hero-action" routerLink="/login">ورود</a>
+        <a mat-stroked-button color="primary" class="hero-action" routerLink="/register">ثبت‌نام</a>
+      </div>
+    }
   </section>
 </main>

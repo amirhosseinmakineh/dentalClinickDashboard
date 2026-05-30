@@ -77,7 +77,8 @@ export class RegisterComponent {
     firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[A-Za-zÀ-ÿ\u0600-\u06FF\s'-]+$/)]],
     lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[A-Za-zÀ-ÿ\u0600-\u06FF\s'-]+$/)]],
     phoneNumber: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],
-    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(64), Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).+$/)]],
+    passwordHash: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(64), Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).+$/)]],
+    isCompleteProfile: [false],
     gender: ['Female' as Gender, [Validators.required]],
     birthDate: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]]
   });
@@ -129,15 +130,9 @@ export class RegisterComponent {
     this.authService.register(this.form.getRawValue())
       .pipe(finalize(() => this.isSubmitting = false))
       .subscribe({
-        next: (response) => {
-          const token = response.accessToken ?? response.token;
-
-          if (token) {
-            localStorage.setItem('authToken', token);
-          }
-
-          this.toastr.success('حساب کاربری شما با موفقیت ایجاد شد.', 'ثبت‌نام موفق');
-          void this.router.navigateByUrl(this.authService.getRedirectUrl(response));
+        next: () => {
+          this.toastr.success('حساب کاربری شما با موفقیت ایجاد شد. اکنون می‌توانید وارد شوید.', 'ثبت‌نام موفق');
+          void this.router.navigateByUrl('/login');
         },
         error: (error: unknown) => {
           this.toastr.error(this.getRegisterErrorMessage(error), 'خطا در ثبت‌نام');
@@ -318,7 +313,7 @@ export class RegisterComponent {
 
   private showValidationErrors(): void {
     const messages: string[] = [];
-    const { firstName, lastName, phoneNumber, password, gender, birthDate } = this.form.controls;
+    const { firstName, lastName, phoneNumber, passwordHash, gender, birthDate } = this.form.controls;
 
     if (firstName.hasError('required')) {
       messages.push('نام را وارد کنید.');
@@ -346,13 +341,13 @@ export class RegisterComponent {
       messages.push('شماره موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.');
     }
 
-    if (password.hasError('required')) {
+    if (passwordHash.hasError('required')) {
       messages.push('رمز عبور را وارد کنید.');
-    } else if (password.hasError('minlength')) {
+    } else if (passwordHash.hasError('minlength')) {
       messages.push('رمز عبور باید حداقل ۸ کاراکتر باشد.');
-    } else if (password.hasError('maxlength')) {
+    } else if (passwordHash.hasError('maxlength')) {
       messages.push('رمز عبور باید حداکثر ۶۴ کاراکتر باشد.');
-    } else if (password.hasError('pattern')) {
+    } else if (passwordHash.hasError('pattern')) {
       messages.push('رمز عبور باید حداقل شامل یک حرف و یک عدد باشد.');
     }
 
