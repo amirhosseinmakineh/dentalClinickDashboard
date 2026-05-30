@@ -5,8 +5,8 @@ import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
 
-import { AuthService } from '../../core/auth/auth.service';
-import { ButtonComponent } from '../../shared/button/button.component';
+import { AuthService } from '../../services/auth.service';
+import { ButtonComponent } from '../button/button.component';
 
 @Component({
   selector: 'app-login',

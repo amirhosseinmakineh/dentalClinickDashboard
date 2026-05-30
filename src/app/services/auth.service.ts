@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AuthResponse, CreateUserCommand, LoginCommand } from './auth.models';
+import { AuthResponse, CreateUserCommand, LoginCommand } from '../models/auth.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap');
 @import '@angular/material/prebuilt-themes/azure-blue.css';
 @import 'ngx-toastr/toastr';
 
@@ -11,9 +12,10 @@
   --app-text: #102a43;
   --app-muted: #5d7280;
   --app-border: rgba(25, 118, 210, 0.14);
-  --app-radius: 1rem;
-  --app-shadow: 0 1rem 2.5rem rgba(13, 71, 161, 0.12);
-  font-family: Tahoma, Arial, sans-serif;
+  --app-radius: 0.85rem;
+  --app-shadow: 0 0.75rem 2rem rgba(13, 71, 161, 0.1);
+  --app-font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
+  font-family: var(--app-font-family);
 }
 
 * {
@@ -29,7 +31,7 @@ body {
 body {
   background: var(--app-blue-50);
   color: var(--app-text);
-  font-family: inherit;
+  font-family: var(--app-font-family);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -51,7 +53,7 @@ button,
 a[mat-button],
 a[mat-flat-button],
 a[mat-stroked-button] {
-  font-family: inherit;
+  font-family: var(--app-font-family);
 }
 
 .mat-mdc-dialog-container .mdc-dialog__surface {
@@ -74,7 +76,7 @@ table {
 
 th,
 td {
-  padding: 0.875rem 1rem;
+  padding: 0.7rem 0.85rem;
   border-bottom: 1px solid var(--app-border);
   text-align: start;
 }
@@ -87,20 +89,12 @@ th {
   text-transform: uppercase;
 }
 
-@media (max-width: 599px) {
-  :root {
-    font-size: 15px;
-  }
-}
-
-@media (min-width: 600px) and (max-width: 959px) {
-  :root {
-    font-size: 16px;
-  }
+:root {
+  font-size: 15px;
 }
 
 @media (min-width: 960px) {
   :root {
-    font-size: 17px;
+    font-size: 16px;
   }
 }
