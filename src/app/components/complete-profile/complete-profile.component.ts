@@ -3,7 +3,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
-import { RoleService } from '../../services/role.service';
+import { AuthSession } from '../../base/auth-session';
+import { getDashboardUrl } from '../../base/role-routing';
 
 @Component({
   selector: 'app-complete-profile',
@@ -15,9 +16,9 @@ export class CompleteProfileComponent {
   private readonly fb = inject(FormBuilder);
   private readonly toastr = inject(ToastrService);
   private readonly router = inject(Router);
-  private readonly roleService = inject(RoleService);
+  private readonly user = AuthSession.getUser();
 
-  readonly dashboardUrl = this.roleService.getDashboardUrl();
+  readonly dashboardUrl = getDashboardUrl(this.user?.role);
 
   readonly form = this.fb.nonNullable.group({
     nationalCode: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
@@ -35,6 +36,6 @@ export class CompleteProfileComponent {
     }
 
     this.toastr.success('اطلاعات پروفایل به صورت نمایشی ثبت شد.', 'تکمیل پروفایل');
-    void this.router.navigateByUrl(this.roleService.getDashboardUrl());
+    void this.router.navigateByUrl(getDashboardUrl(this.user?.role));
   }
 }

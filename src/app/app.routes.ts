@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './guards/auth.guard';
+import { completeProfileGuard } from './guards/complete-profile.guard';
 import { roleGuard } from './guards/role.guard';
 import { AdminDashboardComponent } from './components/dashboards/admin-dashboard/admin-dashboard.component';
 import { CompleteProfileComponent } from './components/complete-profile/complete-profile.component';
@@ -66,7 +67,7 @@ export const routes: Routes = [
   {
     path: 'complete-profile',
     component: CompleteProfileComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, completeProfileGuard],
     title: 'تکمیل پروفایل'
   },
   {

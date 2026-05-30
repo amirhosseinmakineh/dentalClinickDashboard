@@ -3,8 +3,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 
-import { RoleService } from '../../services/role.service';
-import { TokenService } from '../../services/token.service';
+import { AuthSession } from '../../base/auth-session';
+import { getAllowedRouteForUser } from '../../base/role-routing';
 
 @Component({
   selector: 'app-landing',
@@ -13,16 +13,13 @@ import { TokenService } from '../../services/token.service';
   styleUrl: './landing.component.scss'
 })
 export class LandingComponent {
-  private readonly tokenService = inject(TokenService);
-  private readonly roleService = inject(RoleService);
-
-  readonly user = this.tokenService.getUserFromToken();
+  readonly user = AuthSession.getUser();
 
   get isAuthenticated(): boolean {
-    return this.tokenService.hasToken();
+    return AuthSession.hasToken();
   }
 
   get dashboardUrl(): string {
-    return this.roleService.getDashboardUrl(this.user?.role);
+    return getAllowedRouteForUser(this.user);
   }
 }

@@ -1,3 +1,4 @@
+import { PaginatedResult } from '../base/api-response.models';
 import { AppRole } from '../models/auth.models';
 
 export interface SidebarItem {
@@ -27,7 +28,7 @@ export interface DashboardConfig {
   sidebarItems: SidebarItem[];
   metrics: DashboardMetric[];
   tableTitle: string;
-  tableRows: DashboardTableRow[];
+  table: PaginatedResult<DashboardTableRow>;
   quickActions: SidebarItem[];
 }
 
@@ -49,11 +50,17 @@ export const dashboardConfigs: Record<AppRole, DashboardConfig> = {
       { icon: '💳', label: 'پرداخت‌های موفق', value: '۲۸', trend: '۹۵٪ نرخ موفقیت' }
     ],
     tableTitle: 'آخرین فعالیت‌های مدیریتی',
-    tableRows: [
+    table: {
+      items: [
       { name: 'ایجاد دسترسی منشی', detail: 'کاربر: سارا احمدی', status: 'تکمیل شده', time: '۱۰:۲۰' },
       { name: 'بازبینی پرونده بیمار', detail: 'بیمار: علی محمدی', status: 'در جریان', time: '۱۱:۱۵' },
       { name: 'گزارش نقش‌ها', detail: 'سطح دسترسی ادمین‌ها', status: 'آماده', time: '۱۲:۴۰' }
-    ],
+      ],
+      totalCount: 3,
+      pageNumber: 1,
+      pageSize: 10,
+      totalPages: 1
+    },
     quickActions: [
       { icon: '➕', label: 'افزودن کاربر' },
       { icon: '📊', label: 'گزارش کلینیک' },
@@ -76,11 +83,17 @@ export const dashboardConfigs: Record<AppRole, DashboardConfig> = {
       { icon: '📞', label: 'تماس‌های باز', value: '۹', trend: '۳ تماس فوری' }
     ],
     tableTitle: 'لیست پذیرش نمونه',
-    tableRows: [
+    table: {
+      items: [
       { name: 'مریم رضایی', detail: 'جرم‌گیری', status: 'در انتظار', time: '۱۰:۰۰' },
       { name: 'محمد کریمی', detail: 'ترمیم دندان', status: 'پذیرش شد', time: '۱۰:۳۰' },
       { name: 'نگار حسینی', detail: 'مشاوره ارتودنسی', status: 'پیگیری', time: '۱۱:۰۰' }
-    ],
+      ],
+      totalCount: 3,
+      pageNumber: 1,
+      pageSize: 10,
+      totalPages: 1
+    },
     quickActions: [
       { icon: '➕', label: 'ثبت نوبت' },
       { icon: '✅', label: 'تایید حضور' },
@@ -103,11 +116,17 @@ export const dashboardConfigs: Record<AppRole, DashboardConfig> = {
       { icon: '⭐', label: 'رضایت بیماران', value: '۹۴٪', trend: 'بر اساس نظرسنجی' }
     ],
     tableTitle: 'پرونده‌های مشاوره نمونه',
-    tableRows: [
+    table: {
+      items: [
       { name: 'سینا صالحی', detail: 'ایمپلنت', status: 'نیازمند تماس', time: '۰۹:۴۵' },
       { name: 'الهام قربانی', detail: 'ارتودنسی', status: 'طرح آماده', time: '۱۱:۳۰' },
       { name: 'پارسا نوری', detail: 'زیبایی لبخند', status: 'در بررسی', time: '۱۳:۱۵' }
-    ],
+      ],
+      totalCount: 3,
+      pageNumber: 1,
+      pageSize: 10,
+      totalPages: 1
+    },
     quickActions: [
       { icon: '📝', label: 'ثبت یادداشت' },
       { icon: '📞', label: 'تماس با بیمار' },
@@ -130,11 +149,17 @@ export const dashboardConfigs: Record<AppRole, DashboardConfig> = {
       { icon: '💬', label: 'پیام‌های جدید', value: '۲', trend: 'از پذیرش و مشاور' }
     ],
     tableTitle: 'نوبت‌های نمونه من',
-    tableRows: [
+    table: {
+      items: [
       { name: 'ویزیت دندان‌پزشک', detail: 'اتاق ۲', status: 'تایید شده', time: 'سه‌شنبه ۱۰:۰۰' },
       { name: 'رادیولوژی', detail: 'مرکز تصویربرداری', status: 'در انتظار', time: 'پنجشنبه ۱۲:۳۰' },
       { name: 'مشاوره درمان', detail: 'تماس آنلاین', status: 'برنامه‌ریزی', time: 'شنبه ۱۶:۰۰' }
-    ],
+      ],
+      totalCount: 3,
+      pageNumber: 1,
+      pageSize: 10,
+      totalPages: 1
+    },
     quickActions: [
       { icon: '📅', label: 'درخواست نوبت' },
       { icon: '💳', label: 'پرداخت آنلاین' },
@@ -157,11 +182,17 @@ export const dashboardConfigs: Record<AppRole, DashboardConfig> = {
       { icon: '⭐', label: 'امتیاز کلینیک', value: '۴.۸', trend: 'میانگین نظرات بیماران' }
     ],
     tableTitle: 'اطلاعیه‌های نمونه',
-    tableRows: [
+    table: {
+      items: [
       { name: 'طرح لبخند بهاری', detail: 'تخفیف خدمات زیبایی', status: 'فعال', time: 'این هفته' },
       { name: 'ساعات کاری جدید', detail: 'شنبه تا پنجشنبه', status: 'منتشر شده', time: 'امروز' },
       { name: 'راهنمای مراجعه', detail: 'مدارک لازم پذیرش', status: 'قابل مشاهده', time: 'همیشه' }
-    ],
+      ],
+      totalCount: 3,
+      pageNumber: 1,
+      pageSize: 10,
+      totalPages: 1
+    },
     quickActions: [
       { icon: '📄', label: 'مشاهده خدمات' },
       { icon: '☎️', label: 'تماس با ما' },

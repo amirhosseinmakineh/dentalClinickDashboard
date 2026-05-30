@@ -1,10 +1,9 @@
 import { Component, HostListener, Input, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
+import { AuthSession } from '../../base/auth-session';
+import { needsCompleteProfile } from '../../base/role-routing';
 import { DashboardConfig } from '../../data/dashboard.data';
-import { AuthService } from '../../services/auth.service';
-import { RoleService } from '../../services/role.service';
-import { TokenService } from '../../services/token.service';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
@@ -15,22 +14,15 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
   styleUrl: './main-layout.component.scss'
 })
 export class MainLayoutComponent implements OnInit {
-  private readonly authService = inject(AuthService);
-  private readonly tokenService = inject(TokenService);
-  private readonly roleService = inject(RoleService);
   private readonly router = inject(Router);
 
   @Input({ required: true }) config!: DashboardConfig;
 
-  user = this.tokenService.getUserFromToken();
+  user = AuthSession.getUser();
   isSidebarOpen = true;
 
   get shouldShowCompleteProfileAlert(): boolean {
-    return Boolean(
-      this.user &&
-      this.roleService.canCompleteProfile(this.user.role) &&
-      this.user.isCompleteProfile === false
-    );
+    return needsCompleteProfile(this.user);
   }
 
   ngOnInit(): void {
@@ -53,7 +45,7 @@ export class MainLayoutComponent implements OnInit {
   }
 
   logout(): void {
-    this.authService.logout();
+    AuthSession.clear();
     void this.router.navigateByUrl('/');
   }
 

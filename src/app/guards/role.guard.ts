@@ -1,17 +1,26 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
+import { getAllowedRouteForUser } from '../base/role-routing';
+import { AuthSession } from '../base/auth-session';
 import { AppRole } from '../models/auth.models';
-import { RoleService } from '../services/role.service';
 
 export const roleGuard: CanActivateFn = (route) => {
   const expectedRole = route.data['role'] as AppRole | undefined;
-  const roleService = inject(RoleService);
   const router = inject(Router);
+  const user = AuthSession.getUser();
 
-  if (!expectedRole || roleService.getCurrentRole() === expectedRole) {
-    return true;
+  if (!user) {
+    return router.createUrlTree(['/login']);
   }
 
-  return router.createUrlTree([roleService.getDashboardUrl()]);
+  if (expectedRole && user.role !== expectedRole) {
+    return router.createUrlTree([getAllowedRouteForUser(user)]);
+  }
+
+  const allowedRoute = getAllowedRouteForUser(user);
+
+  const currentPath = `/${route.routeConfig?.path ?? ''}`;
+
+  return allowedRoute === currentPath ? true : router.createUrlTree([allowedRoute]);
 };

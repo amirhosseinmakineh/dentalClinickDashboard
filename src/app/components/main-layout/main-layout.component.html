@@ -63,7 +63,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (row of config.tableRows; track row.name) {
+              @for (row of config.table.items; track row.name) {
                 <tr>
                   <td>{{ row.name }}</td>
                   <td>{{ row.detail }}</td>
@@ -73,6 +73,11 @@
               }
             </tbody>
           </table>
+        </div>
+        <div class="pagination-summary" aria-label="اطلاعات صفحه‌بندی">
+          <span>صفحه {{ config.table.pageNumber }} از {{ config.table.totalPages }}</span>
+          <span>{{ config.table.totalCount }} رکورد</span>
+          <span>اندازه صفحه: {{ config.table.pageSize }}</span>
         </div>
       </article>
 

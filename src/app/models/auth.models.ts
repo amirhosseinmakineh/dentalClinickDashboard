@@ -32,7 +32,4 @@ export interface DecodedUser {
 export interface AuthResponse {
   user: any;
   token: string;
-  accessToken?: string;
-  role?: string;
-  roles?: string[];
 }

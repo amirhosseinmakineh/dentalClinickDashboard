@@ -28,3 +28,6 @@
 @media (max-width: 899px) { .dashboard-shell { display: block; } .mobile-backdrop { display: block; position: fixed; z-index: 20; inset: 0; border: 0; background: rgba(15,41,66,0.38); animation: fade-in 180ms ease; } }
 @media (max-width: 640px) { .metrics-grid { grid-template-columns: 1fr; } .profile-alert { align-items: stretch; flex-direction: column; } .profile-alert a { text-align: center; } .panel { padding: 0.85rem; } th, td { white-space: nowrap; } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.pagination-summary { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.85rem; color: #5d7280; font-weight: 800; }
+.pagination-summary span { border-radius: 999px; background: #f0f7ff; padding: 0.35rem 0.7rem; }
