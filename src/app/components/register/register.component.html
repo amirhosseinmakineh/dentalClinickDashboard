@@ -44,9 +44,67 @@
           </select>
         </div>
 
-        <div class="field-group">
-          <label for="birthDate">تاریخ تولد</label>
-          <input id="birthDate" type="date" formControlName="birthDate" [max]="today" />
+        <div class="field-group birth-date-field">
+          <label for="birthDate">تاریخ تولد شمسی</label>
+          <div class="datepicker-wrapper">
+            <input
+              id="birthDate"
+              type="text"
+              [value]="birthDateDisplay"
+              placeholder="انتخاب تاریخ تولد"
+              readonly
+              autocomplete="bday"
+              aria-haspopup="dialog"
+              [attr.aria-expanded]="isBirthDatePickerOpen"
+              (click)="toggleBirthDatePicker()"
+              (keydown.enter)="toggleBirthDatePicker()"
+              (keydown.space)="toggleBirthDatePicker(); $event.preventDefault()"
+            />
+            <button
+              class="calendar-trigger"
+              type="button"
+              aria-label="باز کردن تقویم شمسی"
+              (click)="toggleBirthDatePicker()"
+            >
+              📅
+            </button>
+
+            @if (isBirthDatePickerOpen) {
+              <div class="persian-datepicker" role="dialog" aria-label="انتخاب تاریخ تولد شمسی">
+                <div class="datepicker-header">
+                  <button type="button" (click)="changeJalaliMonth(1)" aria-label="ماه بعد">‹</button>
+                  <strong>{{ viewMonthLabel }}</strong>
+                  <button type="button" (click)="changeJalaliMonth(-1)" aria-label="ماه قبل">›</button>
+                </div>
+
+                <div class="weekday-row" aria-hidden="true">
+                  @for (weekDay of persianWeekDays; track weekDay) {
+                    <span>{{ weekDay }}</span>
+                  }
+                </div>
+
+                <div class="days-grid">
+                  @for (day of calendarDays; track day.iso) {
+                    <button
+                      type="button"
+                      [class.is-muted]="!day.isCurrentMonth"
+                      [class.is-today]="day.isToday"
+                      [class.is-selected]="day.isSelected"
+                      [disabled]="day.disabled"
+                      (click)="selectBirthDate(day)"
+                    >
+                      {{ toPersianDigits(day.day) }}
+                    </button>
+                  }
+                </div>
+
+                <div class="datepicker-footer">
+                  <span>فرمت نمایش: سال/ماه/روز</span>
+                  <button type="button" (click)="closeBirthDatePicker()">بستن</button>
+                </div>
+              </div>
+            }
+          </div>
         </div>
       </div>
 
