@@ -8,15 +8,13 @@ import { AuthResponse, LoginCommand, RegisterCommand } from '../models/auth.mode
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly tokenService = inject(TokenService);
-  private readonly roleService = inject(RoleService);
-  private readonly baseUrl = '/api';
+  private readonly baseUrl = 'http://localhost:5182/api';
 
   login(command: LoginCommand): Observable<BaseResponse<AuthResponse>> {
     return this.http.post<BaseResponse<AuthResponse>>(`${this.baseUrl}/LoginCommand`, command);
   }
 
   register(command: RegisterCommand): Observable<BaseResponse<unknown>> {
-    return this.http.post<BaseResponse<unknown>>(`${this.baseUrl}/CreateUserCommand`, command);
+    return this.http.post<BaseResponse<unknown>>(`${this.baseUrl}/Auth`, command);
   }
 }
