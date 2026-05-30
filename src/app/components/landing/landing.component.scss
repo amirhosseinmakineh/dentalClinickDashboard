@@ -7,22 +7,22 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: clamp(1rem, 3vw, 3rem);
+  padding: clamp(0.85rem, 2.5vw, 2rem);
   background:
     radial-gradient(circle at top left, rgba(25, 118, 210, 0.16), transparent 32rem),
     linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
 }
 
 .hero-card {
-  width: min(100%, 46rem);
+  width: min(100%, 42rem);
   display: grid;
-  gap: 1.25rem;
-  padding: clamp(2rem, 5vw, 4.5rem);
+  gap: 1rem;
+  padding: clamp(1.5rem, 4vw, 3.25rem);
   border: 1px solid rgba(25, 118, 210, 0.12);
-  border-radius: 2rem;
+  border-radius: 1.5rem;
   background: rgba(255, 255, 255, 0.92);
   text-align: center;
-  box-shadow: 0 1.5rem 4rem rgba(21, 101, 192, 0.14);
+  box-shadow: 0 1rem 2.5rem rgba(21, 101, 192, 0.12);
 }
 
 .eyebrow {
@@ -37,7 +37,7 @@
 h1 {
   margin: 0;
   color: #0f2942;
-  font-size: clamp(2.25rem, 7vw, 4.75rem);
+  font-size: clamp(1.85rem, 6vw, 3.6rem);
   font-weight: 800;
   letter-spacing: -0.055em;
   line-height: 0.95;
@@ -47,7 +47,7 @@ h1 {
   max-width: 36rem;
   margin: 0 auto;
   color: #476173;
-  font-size: clamp(1rem, 2.2vw, 1.18rem);
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
   line-height: 1.7;
 }
 
@@ -58,16 +58,16 @@ h1 {
 }
 
 .hero-action {
-  min-height: 3.75rem;
+  min-height: 3rem;
   border-radius: 999px;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 800;
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .hero-action:hover,
 .hero-action:focus-visible {
-  transform: translateY(-0.16rem);
+  transform: translateY(-0.1rem);
   box-shadow: 0 1rem 2rem rgba(25, 118, 210, 0.16);
 }
 
