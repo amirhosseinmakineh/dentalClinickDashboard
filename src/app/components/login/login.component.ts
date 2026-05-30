@@ -6,6 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
+import { TokenService } from '../../services/token.service';
 import { ButtonComponent } from '../button/button.component';
 
 @Component({
@@ -19,6 +20,7 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toastr = inject(ToastrService);
+  private readonly tokenService = inject(TokenService);
 
   readonly form = this.fb.nonNullable.group({
     phoneNumber: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],
@@ -41,14 +43,12 @@ export class LoginComponent {
       .pipe(finalize(() => this.isSubmitting = false))
       .subscribe({
         next: (response) => {
-          const token = response.accessToken ?? response.token;
+          this.authService.persistLogin(response);
+          const user = this.tokenService.getUserFromToken();
+          const welcomeName = user?.firstName ? `، ${user.firstName}` : '';
 
-          if (token) {
-            localStorage.setItem('authToken', token);
-          }
-
-          this.toastr.success('ورود شما با موفقیت انجام شد.', 'ورود موفق');
-          void this.router.navigateByUrl(this.authService.getRedirectUrl(response));
+          this.toastr.success(`به داشبورد کلینیک خوش آمدید${welcomeName}.`, 'ورود موفق');
+          void this.router.navigateByUrl(this.authService.getLandingRedirectUrl());
         },
         error: (error: unknown) => {
           this.toastr.error(this.getLoginErrorMessage(error), 'خطا در ورود');

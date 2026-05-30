@@ -2,44 +2,46 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AuthResponse, CreateUserCommand, LoginCommand } from '../models/auth.models';
+import { AuthResponse, LoginCommand, RegisterCommand } from '../models/auth.models';
+import { RoleService } from './role.service';
+import { TokenService } from './token.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly tokenService = inject(TokenService);
+  private readonly roleService = inject(RoleService);
   private readonly baseUrl = '/api';
 
   login(command: LoginCommand): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/LoginCommand`, command);
   }
 
-  register(command: CreateUserCommand): Observable<AuthResponse> {
+  register(command: RegisterCommand): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/CreateUserCommand`, command);
   }
 
-  getRedirectUrl(response: AuthResponse): string {
-    const role = this.resolveRole(response).toLowerCase();
+  persistLogin(response: AuthResponse): void {
+    const token = response.token ?? response.accessToken;
 
-    if (role.includes('admin')) {
-      return '/admin';
+    if (token) {
+      this.tokenService.saveToken(token);
     }
 
-    if (role.includes('dentist') || role.includes('doctor')) {
-      return '/dentist';
+    if (response.user) {
+      this.tokenService.saveUserSnapshot(response.user);
     }
+  }
 
-    if (role.includes('reception')) {
-      return '/reception';
-    }
+  logout(): void {
+    this.tokenService.clearToken();
+  }
 
-    if (role.includes('patient')) {
-      return '/patient';
-    }
-
+  getLandingRedirectUrl(): string {
     return '/';
   }
 
-  private resolveRole(response: AuthResponse): string {
-    return response.role ?? response.user?.role ?? response.roles?.[0] ?? response.user?.roles?.[0] ?? '';
+  getDashboardRedirectUrl(): string {
+    return this.roleService.getDashboardUrl();
   }
 }
