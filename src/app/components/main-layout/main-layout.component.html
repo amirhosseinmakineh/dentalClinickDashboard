@@ -3,6 +3,8 @@
     [items]="config.sidebarItems"
     [isOpen]="isSidebarOpen"
     [roleLabel]="config.title"
+    [activeKey]="activeSidebarKey"
+    (itemSelected)="selectSidebarItem($event)"
     (closeSidebar)="closeMobileSidebar()"
   />
 
@@ -29,81 +31,85 @@
       </section>
     }
 
-    <section class="metrics-grid" aria-label="شاخص‌های داشبورد">
-      @for (metric of config.metrics; track metric.label) {
-        <article class="metric-card">
-          <span>{{ metric.icon }}</span>
-          <div>
-            <small>{{ metric.label }}</small>
-            <strong>{{ metric.value }}</strong>
-            <p>{{ metric.trend }}</p>
+    @if (hideDefaultContent) {
+      <ng-content />
+    } @else {
+      <section class="metrics-grid" aria-label="شاخص‌های داشبورد">
+        @for (metric of config.metrics; track metric.label) {
+          <article class="metric-card">
+            <span>{{ metric.icon }}</span>
+            <div>
+              <small>{{ metric.label }}</small>
+              <strong>{{ metric.value }}</strong>
+              <p>{{ metric.trend }}</p>
+            </div>
+          </article>
+        }
+      </section>
+
+      <section class="content-grid">
+        <article class="panel table-panel">
+          <div class="panel-heading">
+            <div>
+              <span>نمایشی</span>
+              <h2>{{ config.tableTitle }}</h2>
+            </div>
+            <button type="button">مشاهده همه</button>
+          </div>
+
+          <div class="responsive-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>عنوان</th>
+                  <th>جزئیات</th>
+                  <th>وضعیت</th>
+                  <th>زمان</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of config.table.items; track row.name) {
+                  <tr>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.detail }}</td>
+                    <td><span class="status-chip">{{ row.status }}</span></td>
+                    <td>{{ row.time }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-summary" aria-label="اطلاعات صفحه‌بندی">
+            <span>صفحه {{ config.table.pageNumber }} از {{ config.table.totalPages }}</span>
+            <span>{{ config.table.totalCount }} رکورد</span>
+            <span>اندازه صفحه: {{ config.table.pageSize }}</span>
           </div>
         </article>
-      }
-    </section>
 
-    <section class="content-grid">
-      <article class="panel table-panel">
-        <div class="panel-heading">
-          <div>
-            <span>نمایشی</span>
-            <h2>{{ config.tableTitle }}</h2>
+        <aside class="panel actions-panel">
+          <div class="panel-heading compact">
+            <div>
+              <span>میانبرها</span>
+              <h2>اقدام‌های سریع</h2>
+            </div>
           </div>
-          <button type="button">مشاهده همه</button>
-        </div>
 
-        <div class="responsive-table">
-          <table>
-            <thead>
-              <tr>
-                <th>عنوان</th>
-                <th>جزئیات</th>
-                <th>وضعیت</th>
-                <th>زمان</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of config.table.items; track row.name) {
-                <tr>
-                  <td>{{ row.name }}</td>
-                  <td>{{ row.detail }}</td>
-                  <td><span class="status-chip">{{ row.status }}</span></td>
-                  <td>{{ row.time }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        <div class="pagination-summary" aria-label="اطلاعات صفحه‌بندی">
-          <span>صفحه {{ config.table.pageNumber }} از {{ config.table.totalPages }}</span>
-          <span>{{ config.table.totalCount }} رکورد</span>
-          <span>اندازه صفحه: {{ config.table.pageSize }}</span>
-        </div>
-      </article>
-
-      <aside class="panel actions-panel">
-        <div class="panel-heading compact">
-          <div>
-            <span>میانبرها</span>
-            <h2>اقدام‌های سریع</h2>
+          <div class="quick-actions">
+            @for (action of config.quickActions; track action.label) {
+              <button type="button">
+                <span>{{ action.icon }}</span>
+                {{ action.label }}
+              </button>
+            }
           </div>
-        </div>
 
-        <div class="quick-actions">
-          @for (action of config.quickActions; track action.label) {
-            <button type="button">
-              <span>{{ action.icon }}</span>
-              {{ action.label }}
-            </button>
-          }
-        </div>
-
-        <div class="dentistry-card">
-          <span>✨</span>
-          <strong>UI آماده توسعه</strong>
-          <p>این بخش‌ها فعلاً placeholder هستند و بدون CRUD واقعی یا اتصال مدیریتی به بک‌اند طراحی شده‌اند.</p>
-        </div>
-      </aside>
-    </section>
+          <div class="dentistry-card">
+            <span>✨</span>
+            <strong>UI آماده توسعه</strong>
+            <p>این بخش‌ها فعلاً placeholder هستند و بدون CRUD واقعی یا اتصال مدیریتی به بک‌اند طراحی شده‌اند.</p>
+          </div>
+        </aside>
+      </section>
+    }
   </main>
 </div>

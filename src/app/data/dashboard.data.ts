@@ -4,6 +4,7 @@ import { AppRole } from '../models/auth.models';
 export interface SidebarItem {
   icon: string;
   label: string;
+  key?: string;
   badge?: string;
 }
 
@@ -38,11 +39,13 @@ export const dashboardConfigs: Record<AppRole, DashboardConfig> = {
     title: 'داشبورد ادمین',
     subtitle: 'کنترل مرکزی کلینیک، کاربران و دسترسی‌ها',
     sidebarItems: [
-      { icon: '👥', label: 'مدیریت کاربران' },
-      { icon: '🦷', label: 'مدیریت بیماران' },
-      { icon: '🗂️', label: 'مدیریت منشی‌ها' },
-      { icon: '💬', label: 'مدیریت مشاوران' },
-      { icon: '🛡️', label: 'مدیریت ادمین‌ها' }
+      { icon: '🏠', label: 'نمای کلی', key: 'overview' },
+      { icon: '🛡️', label: 'مدیریت ادمین‌ها', key: 'admins' },
+      { icon: '💬', label: 'مدیریت مشاورها', key: 'consultants' },
+      { icon: '🗂️', label: 'مدیریت منشی‌ها', key: 'secretaries' },
+      { icon: '👥', label: 'مدیریت کاربران', key: 'users' },
+      { icon: '🦷', label: 'مدیریت بیماران', key: 'patients' },
+      { icon: '📞', label: 'مدیریت شماره تماس‌ها', key: 'contacts' }
     ],
     metrics: [
       { icon: '👥', label: 'کاربران فعال', value: '۱,۲۴۸', trend: '۱۲٪ رشد ماهانه' },

@@ -13,5 +13,7 @@ export class SidebarComponent {
   @Input() isOpen = true;
   @Input() title = 'DentalDashboard';
   @Input() roleLabel = 'داشبورد';
+  @Input() activeKey?: string;
   @Output() closeSidebar = new EventEmitter<void>();
+  @Output() itemSelected = new EventEmitter<SidebarItem>();
 }
