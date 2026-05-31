@@ -8,14 +8,32 @@ export class AuthSession {
 
   static persistLogin(response: BaseResponse<AuthResponse> | AuthResponse): void {
     const data = getResponseData(response);
+    const token = this.getAuthResponseValue<string>(data, ['token', 'Token']);
+    const user = this.getAuthResponseValue<unknown>(data, ['user', 'User']);
 
-    if (data?.token) {
-      localStorage.setItem(this.tokenKey, data.token);
+    if (token) {
+      localStorage.setItem(this.tokenKey, token);
     }
 
-    if (data?.user) {
-      localStorage.setItem(this.userKey, JSON.stringify(data.user));
+    if (user) {
+      localStorage.setItem(this.userKey, JSON.stringify(user));
     }
+  }
+
+  private static getAuthResponseValue<T>(data: AuthResponse | null | undefined, keys: string[]): T | null {
+    if (!data || typeof data !== 'object') {
+      return null;
+    }
+
+    const source = data as Record<string, unknown>;
+
+    for (const key of keys) {
+      if (source[key] !== undefined && source[key] !== null) {
+        return source[key] as T;
+      }
+    }
+
+    return null;
   }
 
   static clear(): void {

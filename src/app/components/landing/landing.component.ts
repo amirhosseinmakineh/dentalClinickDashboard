@@ -13,10 +13,12 @@ import { getAllowedRouteForUser } from '../../base/role-routing';
   styleUrl: './landing.component.scss'
 })
 export class LandingComponent {
-  readonly user = AuthSession.getUser();
+  get user() {
+    return AuthSession.getUser();
+  }
 
   get isAuthenticated(): boolean {
-    return AuthSession.hasToken();
+    return Boolean(this.user);
   }
 
   get dashboardUrl(): string {

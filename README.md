@@ -12,5 +12,5 @@ npm start
 ## Implemented routes
 
 - `/` — responsive landing page with Login and Register actions.
-- `/login` — responsive login page that validates phone/password and submits to the `LoginCommand` API.
+- `/login` — responsive login page that validates user id/phone/password and submits `LoginCommand` to `/api/login`.
 - `/register` — responsive registration page that validates user profile fields and submits to the `CreateUserCommand` API.
