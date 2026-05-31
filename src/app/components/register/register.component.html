@@ -39,7 +39,7 @@
           <label for="gender">جنسیت</label>
           <select id="gender" formControlName="gender">
             @for (gender of genderOptions; track gender.value) {
-              <option [value]="gender.value">{{ gender.label }}</option>
+              <option [ngValue]="gender.value">{{ gender.label }}</option>
             }
           </select>
         </div>
