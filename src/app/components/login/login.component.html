@@ -8,6 +8,18 @@
 
     <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="field-group">
+        <label for="userId">شناسه کاربر</label>
+        <input
+          id="userId"
+          type="text"
+          formControlName="userId"
+          autocomplete="username"
+          dir="ltr"
+          placeholder="00000000-0000-0000-0000-000000000000"
+        />
+      </div>
+
+      <div class="field-group">
         <label for="phoneNumber">شماره موبایل</label>
         <input
           id="phoneNumber"

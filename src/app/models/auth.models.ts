@@ -8,6 +8,7 @@ export type Gender = typeof Gender[keyof typeof Gender];
 export type AppRole = 'Admin' | 'Secretary' | 'Consultant' | 'Patient' | 'User';
 
 export interface LoginCommand {
+  userId: string;
   phoneNumber: string;
   passwordHash: string;
 }
