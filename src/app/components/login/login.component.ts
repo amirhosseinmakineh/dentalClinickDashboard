@@ -67,13 +67,7 @@ export class LoginComponent {
 
   private showValidationErrors(): void {
     const messages: string[] = [];
-    const { userId, phoneNumber, passwordHash } = this.form.controls;
-
-    if (userId.hasError('required')) {
-      messages.push('شناسه کاربر را وارد کنید.');
-    } else if (userId.hasError('pattern')) {
-      messages.push('شناسه کاربر باید یک GUID معتبر باشد.');
-    }
+    const { phoneNumber, passwordHash } = this.form.controls;
 
     if (phoneNumber.hasError('required')) {
       messages.push('شماره موبایل را وارد کنید.');
