@@ -1,9 +1,9 @@
-import { Component, HostListener, Input, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnInit, Output, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthSession } from '../../base/auth-session';
 import { needsCompleteProfile } from '../../base/role-routing';
-import { DashboardConfig } from '../../data/dashboard.data';
+import { DashboardConfig, SidebarItem } from '../../data/dashboard.data';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
@@ -17,6 +17,9 @@ export class MainLayoutComponent implements OnInit {
   private readonly router = inject(Router);
 
   @Input({ required: true }) config!: DashboardConfig;
+  @Input() hideDefaultContent = false;
+  @Input() activeSidebarKey?: string;
+  @Output() sidebarItemSelected = new EventEmitter<SidebarItem>();
 
   user = AuthSession.getUser();
   isSidebarOpen = true;
@@ -42,6 +45,11 @@ export class MainLayoutComponent implements OnInit {
     if (window.innerWidth < 900) {
       this.isSidebarOpen = false;
     }
+  }
+
+  selectSidebarItem(item: SidebarItem): void {
+    this.sidebarItemSelected.emit(item);
+    this.closeMobileSidebar();
   }
 
   logout(): void {
