@@ -1,4 +1,4 @@
-<section class="crud-panel" [class.compact-grid]="gridDensity === 'compact'">
+<section class="crud-panel" [class.compact-grid]="gridDensity === 'compact'" [class.is-loading]="loading">
   <header class="crud-heading">
     <div>
       <span>مدیریت</span>
@@ -47,7 +47,7 @@
       <table>
         <thead>
           <tr>
-            @for (column of columns; track column.key) {
+            @for (column of visibleColumns; track column.key) {
               <th>{{ column.label }}</th>
             }
             <th>عملیات</th>
@@ -56,7 +56,7 @@
         <tbody>
           @for (row of pagedRows; track row.id) {
             <tr>
-              @for (column of columns; track column.key) {
+              @for (column of visibleColumns; track column.key) {
                 <td>{{ row[column.key] }}</td>
               }
               <td>
@@ -68,7 +68,7 @@
             </tr>
           } @empty {
             <tr>
-              <td class="empty-cell" [attr.colspan]="columns.length + 1">رکوردی پیدا نشد.</td>
+              <td class="empty-cell" [attr.colspan]="visibleColumns.length + 1">رکوردی پیدا نشد.</td>
             </tr>
           }
         </tbody>
@@ -78,7 +78,7 @@
     <div class="card-grid">
       @for (row of pagedRows; track row.id) {
         <article class="data-card">
-          @for (column of columns; track column.key) {
+          @for (column of visibleColumns; track column.key) {
             <div>
               <span>{{ column.label }}</span>
               <strong>{{ row[column.key] }}</strong>
@@ -98,14 +98,17 @@
   <footer class="pagination-bar" aria-label="صفحه‌بندی">
     <div>
       <span>صفحه {{ pageNumber }} از {{ totalPages }}</span>
-      <span>{{ filteredRows.length }} رکورد</span>
+      <span>{{ resolvedTotalCount }} رکورد</span>
     </div>
     <div class="pagination-actions">
       <button type="button" [disabled]="pageNumber === 1" (click)="goToPage(pageNumber - 1)">قبلی</button>
-      <input type="number" min="1" [max]="totalPages" [(ngModel)]="pageNumber" aria-label="شماره صفحه" />
+      <input type="number" min="1" [max]="totalPages" [(ngModel)]="pageNumber" (change)="onPageNumberChange()" aria-label="شماره صفحه" />
       <button type="button" [disabled]="pageNumber === totalPages" (click)="goToPage(pageNumber + 1)">بعدی</button>
     </div>
   </footer>
+  @if (loading) {
+    <div class="loading-overlay">در حال دریافت اطلاعات...</div>
+  }
 </section>
 
 @if (isFormDialogOpen) {
@@ -117,10 +120,20 @@
       </header>
 
       <div class="dialog-fields">
-        @for (column of columns; track column.key) {
-          <label>
+        @for (column of formColumns; track column.key) {
+          <label [class.checkbox-field]="column.type === 'checkbox'">
             <span>{{ column.label }}</span>
-            <input [type]="column.type ?? 'text'" [(ngModel)]="formModel[column.key]" [name]="column.key" [required]="column.required ?? true" />
+            @if (column.type === 'select') {
+              <select [(ngModel)]="formModel[column.key]" [name]="column.key" [required]="column.required ?? true">
+                @for (option of column.options ?? []; track option.label) {
+                  <option [ngValue]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            } @else if (column.type === 'checkbox') {
+              <input type="checkbox" [(ngModel)]="formModel[column.key]" [name]="column.key" />
+            } @else {
+              <input [type]="column.type ?? 'text'" [(ngModel)]="formModel[column.key]" [name]="column.key" [required]="column.required ?? true" />
+            }
           </label>
         }
       </div>

@@ -1,7 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
+import { finalize } from 'rxjs';
 
-import { CrudGridColumn, CrudGridComponent, CrudGridRow } from '../../../base/crud-grid/crud-grid.component';
+import { CrudGridColumn, CrudGridComponent, CrudGridQueryChange, CrudGridRow } from '../../../base/crud-grid/crud-grid.component';
+import { BaseResponse, getBackendErrorMessage, getResponseData, getResponseMessage, isSuccessfulResponse } from '../../../base/api-response.models';
 import { dashboardConfigs, SidebarItem } from '../../../data/dashboard.data';
+import { Gender } from '../../../models/auth.models';
+import { CreateUserCommand, UpdateUserCommand, UserListItem, UserListResult } from '../../../models/user-management.models';
+import { UserManagementService } from '../../../services/user-management.service';
 import { MainLayoutComponent } from '../../main-layout/main-layout.component';
 
 interface AdminManagementSection {
@@ -28,14 +34,43 @@ interface AdminManagementSection {
           [description]="activeSection.description"
           [columns]="activeSection.columns"
           [rows]="activeSection.rows"
+          [remoteMode]="isUsersSection"
+          [loading]="isUsersLoading"
+          [totalCount]="usersTotalCount"
+          [serverPageNumber]="usersQuery.pageNumber"
+          [serverPageSize]="usersQuery.pageSize"
+          (queryChange)="loadUsers($event)"
+          (createRow)="createUser($event)"
+          (updateRow)="updateUser($event)"
+          (deleteRow)="deleteUser($event)"
         />
       }
     </app-main-layout>
   `
 })
-export class AdminDashboardComponent {
+export class AdminDashboardComponent implements OnInit {
+  private readonly userManagementService = inject(UserManagementService);
+  private readonly toastr = inject(ToastrService);
+
   readonly config = dashboardConfigs.Admin;
   activeSectionKey = 'overview';
+  isUsersLoading = false;
+  usersTotalCount = 0;
+  usersQuery: CrudGridQueryChange = { pageNumber: 1, pageSize: 5, search: '' };
+
+  readonly roleOptions = [
+    { label: 'ادمین', value: 'Admin' },
+    { label: 'مشاور', value: 'Consultant' },
+    { label: 'منشی', value: 'Secretary' },
+    { label: 'بیمار', value: 'Patient' },
+    { label: 'کاربر عادی', value: 'User' }
+  ];
+
+  readonly genderOptions = [
+    { label: 'زن', value: Gender.Female },
+    { label: 'مرد', value: Gender.Male },
+    { label: 'سایر', value: Gender.Other }
+  ];
 
   readonly sections: AdminManagementSection[] = [
     {
@@ -89,18 +124,20 @@ export class AdminDashboardComponent {
     {
       key: 'users',
       title: 'کاربران',
-      description: 'لیست کاربران عمومی سیستم همراه با عملیات کامل CRUD.',
+      description: 'مدیریت کاربران با اتصال مستقیم به UserController بک‌اند.',
       columns: [
-        { key: 'fullName', label: 'نام کاربر' },
-        { key: 'email', label: 'ایمیل', type: 'email' },
-        { key: 'role', label: 'نقش' },
-        { key: 'registeredAt', label: 'تاریخ ثبت‌نام', type: 'date' }
+        { key: 'firstName', label: 'نام' },
+        { key: 'lastName', label: 'نام خانوادگی' },
+        { key: 'phoneNumber', label: 'شماره تماس', type: 'tel' },
+        { key: 'roleName', label: 'نقش', type: 'select', options: this.roleOptions, defaultValue: 'User', createOnly: true },
+        { key: 'isActiveLabel', label: 'وضعیت', hiddenInForm: true },
+        { key: 'passwordHash', label: 'رمز عبور', type: 'password', hiddenInGrid: true, createOnly: true },
+        { key: 'birthDate', label: 'تاریخ تولد', type: 'date', hiddenInGrid: true, createOnly: true },
+        { key: 'gender', label: 'جنسیت', type: 'select', hiddenInGrid: true, options: this.genderOptions, defaultValue: Gender.Female },
+        { key: 'isCompleteProfile', label: 'پروفایل کامل است', type: 'checkbox', hiddenInGrid: true, defaultValue: false },
+        { key: 'isActive', label: 'فعال باشد', type: 'checkbox', hiddenInGrid: true, updateOnly: true, defaultValue: true }
       ],
-      rows: [
-        { id: 1, fullName: 'علی محمدی', email: 'ali@example.com', role: 'User', registeredAt: '2026-05-01' },
-        { id: 2, fullName: 'زهرا موسوی', email: 'zahra@example.com', role: 'User', registeredAt: '2026-05-10' },
-        { id: 3, fullName: 'پارسا اکبری', email: 'parsa@example.com', role: 'User', registeredAt: '2026-05-18' }
-      ]
+      rows: []
     },
     {
       key: 'patients',
@@ -140,7 +177,144 @@ export class AdminDashboardComponent {
     return this.sections.find((section) => section.key === this.activeSectionKey);
   }
 
+  get isUsersSection(): boolean {
+    return this.activeSectionKey === 'users';
+  }
+
+  ngOnInit(): void {
+    if (this.isUsersSection) {
+      this.loadUsers(this.usersQuery);
+    }
+  }
+
   selectSection(item: SidebarItem): void {
     this.activeSectionKey = item.key ?? 'overview';
+
+    if (this.isUsersSection) {
+      this.loadUsers(this.usersQuery);
+    }
+  }
+
+  loadUsers(query: CrudGridQueryChange): void {
+    this.usersQuery = query;
+    this.isUsersLoading = true;
+
+    this.userManagementService.getUsers(query)
+      .pipe(finalize(() => this.isUsersLoading = false))
+      .subscribe({
+        next: (response: BaseResponse<UserListResult>) => {
+          if (!isSuccessfulResponse(response)) {
+            this.toastr.error(getResponseMessage(response, 'امکان دریافت لیست کاربران وجود ندارد.'), 'خطا');
+            return;
+          }
+
+          const result = getResponseData(response) ?? this.getEmptyUsersResult(query);
+          this.usersTotalCount = result.totalCount;
+          this.usersQuery = {
+            pageNumber: result.pageNumber,
+            pageSize: result.pageSize,
+            search: query.search
+          };
+          this.setUsersRows(result.items);
+        },
+        error: (error: unknown) => {
+          this.toastr.error(getBackendErrorMessage(error, 'امکان دریافت لیست کاربران وجود ندارد.'), 'خطا');
+        }
+      });
+  }
+
+  createUser(row: CrudGridRow): void {
+    const command: CreateUserCommand = {
+      firstName: String(row['firstName'] ?? ''),
+      lastName: String(row['lastName'] ?? ''),
+      phoneNumber: String(row['phoneNumber'] ?? ''),
+      passwordHash: String(row['passwordHash'] ?? ''),
+      isCompleteProfile: Boolean(row['isCompleteProfile']),
+      avatarImageName: null,
+      gender: Number(row['gender'] ?? Gender.Female) as Gender,
+      birthDate: String(row['birthDate'] ?? ''),
+      roles: [{ name: String(row['roleName'] ?? 'User') }]
+    };
+
+    this.isUsersLoading = true;
+    this.userManagementService.createUser(command)
+      .pipe(finalize(() => this.isUsersLoading = false))
+      .subscribe({
+        next: (response: BaseResponse<unknown>) => this.handleUsersMutationResponse(response, 'کاربر با موفقیت ایجاد شد.'),
+        error: (error: unknown) => this.toastr.error(getBackendErrorMessage(error, 'امکان ایجاد کاربر وجود ندارد.'), 'خطا')
+      });
+  }
+
+  updateUser(row: CrudGridRow): void {
+    const command: UpdateUserCommand = {
+      id: String(row.id),
+      firstName: String(row['firstName'] ?? ''),
+      lastName: String(row['lastName'] ?? ''),
+      phoneNumber: String(row['phoneNumber'] ?? ''),
+      isCompleteProfile: Boolean(row['isCompleteProfile']),
+      avatarImageName: null,
+      gender: Number(row['gender'] ?? Gender.Female) as Gender,
+      isActive: Boolean(row['isActive'])
+    };
+
+    this.isUsersLoading = true;
+    this.userManagementService.updateUser(command)
+      .pipe(finalize(() => this.isUsersLoading = false))
+      .subscribe({
+        next: (response: BaseResponse<unknown>) => this.handleUsersMutationResponse(response, 'کاربر با موفقیت آپدیت شد.'),
+        error: (error: unknown) => this.toastr.error(getBackendErrorMessage(error, 'امکان آپدیت کاربر وجود ندارد.'), 'خطا')
+      });
+  }
+
+  deleteUser(row: CrudGridRow): void {
+    this.isUsersLoading = true;
+    this.userManagementService.deleteUser({ userId: String(row.id) })
+      .pipe(finalize(() => this.isUsersLoading = false))
+      .subscribe({
+        next: (response: BaseResponse<unknown>) => this.handleUsersMutationResponse(response, 'کاربر با موفقیت حذف شد.'),
+        error: (error: unknown) => this.toastr.error(getBackendErrorMessage(error, 'امکان حذف کاربر وجود ندارد.'), 'خطا')
+      });
+  }
+
+  private handleUsersMutationResponse(response: BaseResponse<unknown>, successMessage: string): void {
+    if (!isSuccessfulResponse(response)) {
+      this.toastr.error(getResponseMessage(response, 'عملیات مدیریت کاربر انجام نشد.'), 'خطا');
+      return;
+    }
+
+    this.toastr.success(getResponseMessage(response, successMessage), 'موفق');
+    this.loadUsers(this.usersQuery);
+  }
+
+  private setUsersRows(users: UserListItem[]): void {
+    const usersSection = this.sections.find((section) => section.key === 'users');
+
+    if (!usersSection) {
+      return;
+    }
+
+    usersSection.rows = users.map((user) => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: user.phoneNumber,
+      roleName: user.roleName,
+      isActive: user.isActive,
+      isActiveLabel: user.isActive ? 'فعال' : 'غیرفعال',
+      isCompleteProfile: false,
+      gender: Gender.Female
+    }));
+  }
+
+  private getEmptyUsersResult(query: CrudGridQueryChange): UserListResult {
+    return {
+      items: [],
+      totalCount: 0,
+      pageNumber: query.pageNumber,
+      pageSize: query.pageSize,
+      totalPages: 1,
+      hasPrevious: false,
+      hasNext: false
+    };
   }
 }

@@ -1,15 +1,33 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
+export interface CrudGridOption {
+  label: string;
+  value: string | number | boolean;
+}
 
 export interface CrudGridColumn {
   key: string;
   label: string;
-  type?: 'text' | 'email' | 'tel' | 'date';
+  type?: 'text' | 'email' | 'tel' | 'date' | 'password' | 'checkbox' | 'select' | 'hidden';
   required?: boolean;
+  hiddenInGrid?: boolean;
+  hiddenInForm?: boolean;
+  createOnly?: boolean;
+  updateOnly?: boolean;
+  defaultValue?: CrudGridValue;
+  options?: CrudGridOption[];
 }
 
-export type CrudGridRow = Record<string, string | number> & { id: number };
+export type CrudGridValue = string | number | boolean | null | undefined;
+export type CrudGridRow = Record<string, CrudGridValue> & { id: string | number };
+
+export interface CrudGridQueryChange {
+  pageNumber: number;
+  pageSize: number;
+  search: string;
+}
 
 type DialogMode = 'create' | 'update' | 'delete' | null;
 
@@ -24,6 +42,15 @@ export class CrudGridComponent implements OnChanges {
   @Input() description = '';
   @Input({ required: true }) columns: CrudGridColumn[] = [];
   @Input({ required: true }) rows: CrudGridRow[] = [];
+  @Input() remoteMode = false;
+  @Input() loading = false;
+  @Input() totalCount = 0;
+  @Input() serverPageNumber = 1;
+  @Input() serverPageSize = 5;
+  @Output() queryChange = new EventEmitter<CrudGridQueryChange>();
+  @Output() createRow = new EventEmitter<CrudGridRow>();
+  @Output() updateRow = new EventEmitter<CrudGridRow>();
+  @Output() deleteRow = new EventEmitter<CrudGridRow>();
 
   workingRows: CrudGridRow[] = [];
   searchTerm = '';
@@ -36,7 +63,33 @@ export class CrudGridComponent implements OnChanges {
   formModel: CrudGridRow = { id: 0 };
   selectedRow: CrudGridRow | null = null;
 
+  get visibleColumns(): CrudGridColumn[] {
+    return this.columns.filter((column) => !column.hiddenInGrid && column.type !== 'hidden');
+  }
+
+  get formColumns(): CrudGridColumn[] {
+    return this.columns.filter((column) => {
+      if (column.type === 'hidden' || column.hiddenInForm) {
+        return false;
+      }
+
+      if (this.dialogMode === 'create') {
+        return !column.updateOnly;
+      }
+
+      if (this.dialogMode === 'update') {
+        return !column.createOnly;
+      }
+
+      return false;
+    });
+  }
+
   get filteredRows(): CrudGridRow[] {
+    if (this.remoteMode) {
+      return this.workingRows;
+    }
+
     const normalizedSearch = this.searchTerm.trim().toLowerCase();
 
     if (!normalizedSearch) {
@@ -44,16 +97,25 @@ export class CrudGridComponent implements OnChanges {
     }
 
     return this.workingRows.filter((row) =>
-      this.columns.some((column) => String(row[column.key] ?? '').toLowerCase().includes(normalizedSearch))
+      this.visibleColumns.some((column) => String(row[column.key] ?? '').toLowerCase().includes(normalizedSearch))
     );
   }
 
+  get resolvedTotalCount(): number {
+    return this.remoteMode ? this.totalCount : this.filteredRows.length;
+  }
+
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredRows.length / this.pageSize));
+    return Math.max(1, Math.ceil(this.resolvedTotalCount / this.pageSize));
   }
 
   get pagedRows(): CrudGridRow[] {
     this.ensureValidPage();
+
+    if (this.remoteMode) {
+      return this.workingRows;
+    }
+
     const startIndex = (this.pageNumber - 1) * this.pageSize;
 
     return this.filteredRows.slice(startIndex, startIndex + this.pageSize);
@@ -70,8 +132,14 @@ export class CrudGridComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['rows']) {
       this.workingRows = this.rows.map((row) => ({ ...row }));
-      this.pageNumber = 1;
-      this.closeDialog();
+    }
+
+    if (changes['serverPageNumber'] && this.remoteMode) {
+      this.pageNumber = this.serverPageNumber;
+    }
+
+    if (changes['serverPageSize'] && this.remoteMode) {
+      this.pageSize = this.serverPageSize;
     }
   }
 
@@ -83,7 +151,7 @@ export class CrudGridComponent implements OnChanges {
   openUpdateDialog(row: CrudGridRow): void {
     this.dialogMode = 'update';
     this.selectedRow = row;
-    this.formModel = { ...row };
+    this.formModel = { ...this.createEmptyRow(), ...row };
   }
 
   openDeleteDialog(row: CrudGridRow): void {
@@ -99,12 +167,22 @@ export class CrudGridComponent implements OnChanges {
 
   saveForm(): void {
     if (this.dialogMode === 'create') {
-      this.workingRows = [{ ...this.formModel, id: this.getNextId() }, ...this.workingRows];
-      this.pageNumber = 1;
+      if (this.remoteMode) {
+        this.createRow.emit({ ...this.formModel });
+      } else {
+        this.workingRows = [{ ...this.formModel, id: this.getNextId() }, ...this.workingRows];
+        this.pageNumber = 1;
+      }
     }
 
     if (this.dialogMode === 'update' && this.selectedRow) {
-      this.workingRows = this.workingRows.map((row) => (row.id === this.selectedRow?.id ? { ...this.formModel } : row));
+      const updatedRow = { ...this.formModel, id: this.selectedRow.id };
+
+      if (this.remoteMode) {
+        this.updateRow.emit(updatedRow);
+      } else {
+        this.workingRows = this.workingRows.map((row) => (row.id === this.selectedRow?.id ? updatedRow : row));
+      }
     }
 
     this.closeDialog();
@@ -112,8 +190,12 @@ export class CrudGridComponent implements OnChanges {
 
   confirmDelete(): void {
     if (this.selectedRow) {
-      this.workingRows = this.workingRows.filter((row) => row.id !== this.selectedRow?.id);
-      this.ensureValidPage();
+      if (this.remoteMode) {
+        this.deleteRow.emit(this.selectedRow);
+      } else {
+        this.workingRows = this.workingRows.filter((row) => row.id !== this.selectedRow?.id);
+        this.ensureValidPage();
+      }
     }
 
     this.closeDialog();
@@ -121,25 +203,44 @@ export class CrudGridComponent implements OnChanges {
 
   onSearchChange(): void {
     this.pageNumber = 1;
+    this.emitQueryIfRemote();
   }
 
   onPageSizeChange(): void {
     this.pageNumber = 1;
+    this.emitQueryIfRemote();
   }
 
   goToPage(page: number): void {
     this.pageNumber = Math.min(Math.max(page, 1), this.totalPages);
+    this.emitQueryIfRemote();
+  }
+
+  onPageNumberChange(): void {
+    this.goToPage(this.pageNumber);
   }
 
   private createEmptyRow(): CrudGridRow {
     return this.columns.reduce<CrudGridRow>(
-      (row, column) => ({ ...row, [column.key]: '' }),
+      (row, column) => ({ ...row, [column.key]: column.defaultValue ?? this.getDefaultValue(column) }),
       { id: 0 }
     );
   }
 
+  private getDefaultValue(column: CrudGridColumn): CrudGridValue {
+    if (column.type === 'checkbox') {
+      return false;
+    }
+
+    return '';
+  }
+
   private getNextId(): number {
-    const maxId = this.workingRows.reduce((max, row) => Math.max(max, row.id), 0);
+    const maxId = this.workingRows.reduce((max, row) => {
+      const numericId = typeof row.id === 'number' ? row.id : Number(row.id);
+
+      return Number.isFinite(numericId) ? Math.max(max, numericId) : max;
+    }, 0);
 
     return maxId + 1;
   }
@@ -148,5 +249,17 @@ export class CrudGridComponent implements OnChanges {
     if (this.pageNumber > this.totalPages) {
       this.pageNumber = this.totalPages;
     }
+  }
+
+  private emitQueryIfRemote(): void {
+    if (!this.remoteMode) {
+      return;
+    }
+
+    this.queryChange.emit({
+      pageNumber: this.pageNumber,
+      pageSize: this.pageSize,
+      search: this.searchTerm.trim()
+    });
   }
 }
