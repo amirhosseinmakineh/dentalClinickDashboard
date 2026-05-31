@@ -38,9 +38,9 @@ export class RegisterComponent {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
 
   readonly genderOptions: GenderOption[] = [
-    { value: 'Female', label: 'زن' },
-    { value: 'Male', label: 'مرد' },
-    { value: 'Other', label: 'سایر' }
+    { value: Gender.Female, label: 'زن' },
+    { value: Gender.Male, label: 'مرد' },
+    { value: Gender.Other, label: 'سایر' }
   ];
   readonly today = formatGregorianDate(new Date());
   readonly persianMonths = persianMonths;
@@ -60,7 +60,7 @@ export class RegisterComponent {
     phoneNumber: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],
     passwordHash: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(64), Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).+$/)]],
     isCompleteProfile: [false],
-    gender: ['Female' as Gender, [Validators.required]],
+    gender: [Gender.Female as Gender, [Validators.required]],
     birthDate: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]]
   });
 

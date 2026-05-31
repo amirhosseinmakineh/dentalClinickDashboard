@@ -1,4 +1,10 @@
-export type Gender = 'Female' | 'Male' | 'Other';
+export const Gender = {
+  Female: 0,
+  Male: 1,
+  Other: 2
+} as const;
+
+export type Gender = typeof Gender[keyof typeof Gender];
 export type AppRole = 'Admin' | 'Secretary' | 'Consultant' | 'Patient' | 'User';
 
 export interface LoginCommand {
