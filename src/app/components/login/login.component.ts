@@ -7,7 +7,6 @@ import { finalize } from 'rxjs';
 import { AuthSession } from '../../base/auth-session';
 import { getBackendErrorMessage, getResponseMessage, isSuccessfulResponse } from '../../base/api-response.models';
 import { AuthService } from '../../services/auth.service';
-import { TokenService } from '../../services/token.service';
 import { ButtonComponent } from '../button/button.component';
 
 @Component({
@@ -21,11 +20,10 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toastr = inject(ToastrService);
-  private readonly tokenService = inject(TokenService);
 
   readonly form = this.fb.nonNullable.group({
     phoneNumber: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],
-    password: ['', [Validators.required, Validators.minLength(8)]]
+    passwordHash: ['', [Validators.required, Validators.minLength(8)]]
   });
 
   isSubmitting = false;
@@ -65,7 +63,7 @@ export class LoginComponent {
 
   private showValidationErrors(): void {
     const messages: string[] = [];
-    const { phoneNumber, password } = this.form.controls;
+    const { phoneNumber, passwordHash } = this.form.controls;
 
     if (phoneNumber.hasError('required')) {
       messages.push('شماره موبایل را وارد کنید.');
@@ -73,9 +71,9 @@ export class LoginComponent {
       messages.push('شماره موبایل باید ۱۱ رقم باشد و با ۰۹ شروع شود.');
     }
 
-    if (password.hasError('required')) {
+    if (passwordHash.hasError('required')) {
       messages.push('رمز عبور را وارد کنید.');
-    } else if (password.hasError('minlength')) {
+    } else if (passwordHash.hasError('minlength')) {
       messages.push('رمز عبور باید حداقل ۸ کاراکتر باشد.');
     }
 

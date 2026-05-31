@@ -9,7 +9,7 @@ export type AppRole = 'Admin' | 'Secretary' | 'Consultant' | 'Patient' | 'User';
 
 export interface LoginCommand {
   phoneNumber: string;
-  password: string;
+  passwordHash: string;
 }
 
 export interface RegisterCommand {
@@ -36,6 +36,8 @@ export interface DecodedUser {
 }
 
 export interface AuthResponse {
-  user: any;
-  token: string;
+  user?: unknown;
+  User?: unknown;
+  token?: string;
+  Token?: string;
 }

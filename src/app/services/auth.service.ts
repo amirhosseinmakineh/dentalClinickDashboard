@@ -11,7 +11,7 @@ export class AuthService {
   private readonly baseUrl = 'http://localhost:5182/api';
 
   login(command: LoginCommand): Observable<BaseResponse<AuthResponse>> {
-    return this.http.post<BaseResponse<AuthResponse>>(`${this.baseUrl}/LoginCommand`, command);
+    return this.http.post<BaseResponse<AuthResponse>>(`${this.baseUrl}/login`, command);
   }
 
   register(command: RegisterCommand): Observable<BaseResponse<unknown>> {
