@@ -1,0 +1,163 @@
+<section class="crud-panel" [class.compact-grid]="gridDensity === 'compact'" [class.is-loading]="loading">
+  <header class="crud-heading">
+    <div>
+      <span>مدیریت</span>
+      <h2>{{ title }}</h2>
+      @if (description) {
+        <p>{{ description }}</p>
+      }
+    </div>
+    <button class="primary-action" type="button" (click)="openCreateDialog()">افزودن</button>
+  </header>
+
+  <div class="crud-toolbar" aria-label="ابزارهای لیست">
+    <label class="search-field">
+      <span>جستجو</span>
+      <input type="search" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" placeholder="جستجو در لیست" />
+    </label>
+
+    <label>
+      <span>اندازه صفحه</span>
+      <select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+        @for (option of pageSizeOptions; track option) {
+          <option [ngValue]="option">{{ option }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      <span>نمایش گرید</span>
+      <select [(ngModel)]="viewMode">
+        <option ngValue="table">جدول</option>
+        <option ngValue="cards">کارت</option>
+      </select>
+    </label>
+
+    <label>
+      <span>تراکم گرید</span>
+      <select [(ngModel)]="gridDensity">
+        <option ngValue="comfortable">معمولی</option>
+        <option ngValue="compact">فشرده</option>
+      </select>
+    </label>
+  </div>
+
+  @if (viewMode === 'table') {
+    <div class="responsive-table">
+      <table>
+        <thead>
+          <tr>
+            @for (column of visibleColumns; track column.key) {
+              <th>{{ column.label }}</th>
+            }
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of pagedRows; track row.id) {
+            <tr>
+              @for (column of visibleColumns; track column.key) {
+                <td>{{ row[column.key] }}</td>
+              }
+              <td>
+                <div class="row-actions">
+                  <button type="button" (click)="openUpdateDialog(row)">آپدیت</button>
+                  <button class="danger" type="button" (click)="openDeleteDialog(row)">حذف</button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td class="empty-cell" [attr.colspan]="visibleColumns.length + 1">رکوردی پیدا نشد.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="card-grid">
+      @for (row of pagedRows; track row.id) {
+        <article class="data-card">
+          @for (column of visibleColumns; track column.key) {
+            <div>
+              <span>{{ column.label }}</span>
+              <strong>{{ row[column.key] }}</strong>
+            </div>
+          }
+          <div class="row-actions">
+            <button type="button" (click)="openUpdateDialog(row)">آپدیت</button>
+            <button class="danger" type="button" (click)="openDeleteDialog(row)">حذف</button>
+          </div>
+        </article>
+      } @empty {
+        <p class="empty-state">رکوردی پیدا نشد.</p>
+      }
+    </div>
+  }
+
+  <footer class="pagination-bar" aria-label="صفحه‌بندی">
+    <div>
+      <span>صفحه {{ pageNumber }} از {{ totalPages }}</span>
+      <span>{{ resolvedTotalCount }} رکورد</span>
+    </div>
+    <div class="pagination-actions">
+      <button type="button" [disabled]="pageNumber === 1" (click)="goToPage(pageNumber - 1)">قبلی</button>
+      <input type="number" min="1" [max]="totalPages" [(ngModel)]="pageNumber" (change)="onPageNumberChange()" aria-label="شماره صفحه" />
+      <button type="button" [disabled]="pageNumber === totalPages" (click)="goToPage(pageNumber + 1)">بعدی</button>
+    </div>
+  </footer>
+  @if (loading) {
+    <div class="loading-overlay">در حال دریافت اطلاعات...</div>
+  }
+</section>
+
+@if (isFormDialogOpen) {
+  <div class="dialog-backdrop" role="presentation" (click)="closeDialog()">
+    <form class="crud-dialog" role="dialog" aria-modal="true" [attr.aria-label]="dialogTitle" (click)="$event.stopPropagation()" (ngSubmit)="saveForm()">
+      <header>
+        <h3>{{ dialogTitle }}</h3>
+        <button type="button" aria-label="بستن" (click)="closeDialog()">×</button>
+      </header>
+
+      <div class="dialog-fields">
+        @for (column of formColumns; track column.key) {
+          <label [class.checkbox-field]="column.type === 'checkbox'">
+            <span>{{ column.label }}</span>
+            @if (column.type === 'select') {
+              <select [(ngModel)]="formModel[column.key]" [name]="column.key" [required]="column.required ?? true">
+                @for (option of column.options ?? []; track option.label) {
+                  <option [ngValue]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            } @else if (column.type === 'checkbox') {
+              <input type="checkbox" [(ngModel)]="formModel[column.key]" [name]="column.key" />
+            } @else {
+              <input [type]="column.type ?? 'text'" [(ngModel)]="formModel[column.key]" [name]="column.key" [required]="column.required ?? true" />
+            }
+          </label>
+        }
+      </div>
+
+      <footer>
+        <button type="button" class="secondary-action" (click)="closeDialog()">انصراف</button>
+        <button type="submit" class="primary-action">ذخیره</button>
+      </footer>
+    </form>
+  </div>
+}
+
+@if (dialogMode === 'delete' && selectedRow) {
+  <div class="dialog-backdrop" role="presentation" (click)="closeDialog()">
+    <section class="crud-dialog confirm-dialog" role="dialog" aria-modal="true" aria-label="تایید حذف" (click)="$event.stopPropagation()">
+      <header>
+        <h3>حذف {{ title }}</h3>
+        <button type="button" aria-label="بستن" (click)="closeDialog()">×</button>
+      </header>
+      <p>آیا مطمئن هستید که می‌خواهید این رکورد را حذف کنید؟</p>
+      <footer>
+        <button type="button" class="secondary-action" (click)="closeDialog()">خیر</button>
+        <button type="button" class="danger-action" (click)="confirmDelete()">بله، حذف شود</button>
+      </footer>
+    </section>
+  </div>
+}

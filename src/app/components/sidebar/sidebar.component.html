@@ -10,7 +10,7 @@
 
   <nav class="nav-list">
     @for (item of items; track item.label) {
-      <button type="button" class="nav-item">
+      <button type="button" class="nav-item" [class.is-active]="activeKey === item.key" (click)="itemSelected.emit(item)">
         <span class="nav-icon">{{ item.icon }}</span>
         <span>{{ item.label }}</span>
         @if (item.badge) {
