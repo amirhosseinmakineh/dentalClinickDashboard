@@ -19,6 +19,7 @@ export class UserManagementService {
       const search = query.search.trim();
       params = params
         .set('search', search)
+        .set('Search', search)
         .set('searchTerm', search)
         .set('SearchTerm', search);
     }
