@@ -21,10 +21,6 @@ export interface GetUsersQuery {
   search?: string;
 }
 
-export interface UserRoleCommandModel {
-  name: string;
-}
-
 export interface CreateUserCommand {
   firstName: string;
   lastName: string;
@@ -34,7 +30,7 @@ export interface CreateUserCommand {
   avatarImageName?: string | null;
   gender: Gender;
   birthDate: string;
-  roles: UserRoleCommandModel[];
+  roleName: string;
 }
 
 export interface UpdateUserCommand {

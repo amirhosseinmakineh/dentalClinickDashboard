@@ -10,7 +10,7 @@ export interface CrudGridOption {
 export interface CrudGridColumn {
   key: string;
   label: string;
-  type?: 'text' | 'email' | 'tel' | 'date' | 'password' | 'checkbox' | 'select' | 'hidden';
+  type?: 'text' | 'email' | 'tel' | 'date' | 'jalali-date' | 'password' | 'checkbox' | 'select' | 'hidden';
   required?: boolean;
   hiddenInGrid?: boolean;
   hiddenInForm?: boolean;
@@ -58,7 +58,7 @@ export class CrudGridComponent implements OnChanges {
   pageSize = 5;
   pageSizeOptions = [5, 10, 20];
   viewMode: 'table' | 'cards' = 'table';
-  gridDensity: 'comfortable' | 'compact' = 'comfortable';
+  gridDensity: 'comfortable' | 'compact' = 'compact';
   dialogMode: DialogMode = null;
   formModel: CrudGridRow = { id: 0 };
   selectedRow: CrudGridRow | null = null;

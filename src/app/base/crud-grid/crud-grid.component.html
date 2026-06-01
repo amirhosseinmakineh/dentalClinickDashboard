@@ -131,6 +131,9 @@
               </select>
             } @else if (column.type === 'checkbox') {
               <input type="checkbox" [(ngModel)]="formModel[column.key]" [name]="column.key" />
+            } @else if (column.type === 'jalali-date') {
+              <input type="text" dir="ltr" inputmode="numeric" placeholder="مثلاً ۱۴۰۳/۰۱/۱۵" [(ngModel)]="formModel[column.key]" [name]="column.key" [required]="column.required ?? true" />
+              <small>تاریخ را به شمسی وارد کنید؛ همین مقدار برای بک‌اند ارسال می‌شود.</small>
             } @else {
               <input [type]="column.type ?? 'text'" [(ngModel)]="formModel[column.key]" [name]="column.key" [required]="column.required ?? true" />
             }

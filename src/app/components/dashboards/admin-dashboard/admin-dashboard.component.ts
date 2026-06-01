@@ -132,7 +132,7 @@ export class AdminDashboardComponent implements OnInit {
         { key: 'roleName', label: 'نقش', type: 'select', options: this.roleOptions, defaultValue: 'User', createOnly: true },
         { key: 'isActiveLabel', label: 'وضعیت', hiddenInForm: true },
         { key: 'passwordHash', label: 'رمز عبور', type: 'password', hiddenInGrid: true, createOnly: true },
-        { key: 'birthDate', label: 'تاریخ تولد', type: 'date', hiddenInGrid: true, createOnly: true },
+        { key: 'birthDate', label: 'تاریخ تولد شمسی', type: 'jalali-date', hiddenInGrid: true, createOnly: true },
         { key: 'gender', label: 'جنسیت', type: 'select', hiddenInGrid: true, options: this.genderOptions, defaultValue: Gender.Female },
         { key: 'isCompleteProfile', label: 'پروفایل کامل است', type: 'checkbox', hiddenInGrid: true, defaultValue: false },
         { key: 'isActive', label: 'فعال باشد', type: 'checkbox', hiddenInGrid: true, updateOnly: true, defaultValue: true }
@@ -232,8 +232,8 @@ export class AdminDashboardComponent implements OnInit {
       isCompleteProfile: Boolean(row['isCompleteProfile']),
       avatarImageName: null,
       gender: Number(row['gender'] ?? Gender.Female) as Gender,
-      birthDate: String(row['birthDate'] ?? ''),
-      roles: [{ name: String(row['roleName'] ?? 'User') }]
+      birthDate: this.normalizeJalaliDate(row['birthDate']),
+      roleName: String(row['roleName'] ?? 'User')
     };
 
     this.isUsersLoading = true;
@@ -274,6 +274,18 @@ export class AdminDashboardComponent implements OnInit {
         next: (response: BaseResponse<unknown>) => this.handleUsersMutationResponse(response, 'کاربر با موفقیت حذف شد.'),
         error: (error: unknown) => this.toastr.error(getBackendErrorMessage(error, 'امکان حذف کاربر وجود ندارد.'), 'خطا')
       });
+  }
+
+  private normalizeJalaliDate(value: unknown): string {
+    const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+    const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+
+    return String(value ?? '')
+      .trim()
+      .replace(/[۰-۹]/g, (digit) => String(persianDigits.indexOf(digit)))
+      .replace(/[٠-٩]/g, (digit) => String(arabicDigits.indexOf(digit)))
+      .replace(/[.\-]/g, '/')
+      .replace(/\s+/g, '');
   }
 
   private handleUsersMutationResponse(response: BaseResponse<unknown>, successMessage: string): void {
