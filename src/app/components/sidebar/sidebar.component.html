@@ -1,17 +1,20 @@
-<aside class="sidebar" [class.is-closed]="!isOpen" aria-label="Application menu">
+<aside class="sidebar" [class.is-closed]="!isOpen" aria-label="منوی داشبورد">
   <div class="brand">
-    <span class="brand-mark">A</span>
+    <span class="brand-mark">د</span>
     <div>
       <strong>{{ title }}</strong>
       <small>{{ subtitle }}</small>
     </div>
-    <button class="mobile-close" type="button" aria-label="Close menu" (click)="closeSidebar.emit()">×</button>
+    <button class="collapse-toggle" type="button" aria-label="باز و بسته کردن سایدبار" (click)="toggleSidebar.emit()">
+      <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+    </button>
+    <button class="mobile-close" type="button" aria-label="بستن منو" (click)="closeSidebar.emit()">×</button>
   </div>
 
   <nav class="nav-list">
     @for (item of items; track item.key) {
-      <button type="button" class="nav-item" [class.is-active]="activeKey === item.key" (click)="itemSelected.emit(item)">
-        <span class="nav-icon">{{ item.icon }}</span>
+      <button type="button" class="nav-item" [class.is-active]="activeKey === item.key" [title]="item.label" (click)="itemSelected.emit(item)">
+        <span class="material-symbols-outlined nav-icon" aria-hidden="true">{{ item.icon }}</span>
         <span>{{ item.label }}</span>
       </button>
     }

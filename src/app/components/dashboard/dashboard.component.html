@@ -1,0 +1,152 @@
+<div class="dashboard-shell" dir="rtl" [class.is-sidebar-closed]="!isSidebarOpen">
+  <app-sidebar
+    [items]="sidebarItems"
+    [isOpen]="isSidebarOpen"
+    [activeKey]="activeKey"
+    title="دل‌خند"
+    subtitle="پنل مدیریت کلینیک"
+    (toggleSidebar)="toggleSidebar()"
+    (closeSidebar)="closeSidebar()"
+    (itemSelected)="selectItem($event)"
+  />
+
+  <main class="dashboard-main">
+    <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" />
+
+    <section class="content-canvas" aria-label="فضای محتوای اصلی">
+      <div>
+        <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
+        <h2>CONTENT</h2>
+        <p>
+          این بخش عمداً خالی نگه داشته شده تا محتوای اختصاصی دسترسی‌ها و گزارش‌ها به صورت جداگانه و قابل کنترل نمایش داده شود.
+        </p>
+      </div>
+    </section>
+
+    <section class="stats-grid" aria-label="شاخص‌های کلیدی کلینیک">
+      @for (stat of stats; track stat.label) {
+        <article class="stat-card">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
+          <div>
+            <p>{{ stat.label }}</p>
+            <strong>{{ stat.value }}</strong>
+            <small>{{ stat.trend }}</small>
+          </div>
+        </article>
+      }
+    </section>
+
+    @if (activeKey === 'users') {
+      <section class="management-panel" aria-labelledby="users-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">User Management</p>
+            <h2 id="users-title">مدیریت کاربران</h2>
+            <p>فهرست کاربران پنل، وضعیت حساب و نقش فعلی هر کاربر را به صورت یکپارچه کنترل کنید.</p>
+          </div>
+          <div class="panel-actions">
+            <button type="button" class="ghost-button">خروجی اکسل</button>
+            <button type="button" class="primary-button">افزودن کاربر</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label>
+            <span class="material-symbols-outlined" aria-hidden="true">search</span>
+            <input type="search" placeholder="جستجوی نام، نقش یا شماره تماس" />
+          </label>
+          <button type="button">فیلتر وضعیت</button>
+          <button type="button">مرتب‌سازی</button>
+        </div>
+
+        <div class="data-table" role="table" aria-label="جدول کاربران">
+          <div class="table-row table-head" role="row">
+            <span role="columnheader">کاربر</span>
+            <span role="columnheader">نقش</span>
+            <span role="columnheader">شماره تماس</span>
+            <span role="columnheader">وضعیت</span>
+            <span role="columnheader">آخرین فعالیت</span>
+          </div>
+          @for (user of users; track user.phone) {
+            <div class="table-row" role="row">
+              <span role="cell">{{ user.name }}</span>
+              <span role="cell">{{ user.role }}</span>
+              <span role="cell" dir="ltr">{{ user.phone }}</span>
+              <span role="cell"><mark>{{ user.status }}</mark></span>
+              <span role="cell">{{ user.lastSeen }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    } @else if (activeKey === 'roles') {
+      <section class="management-panel" aria-labelledby="roles-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Role Management</p>
+            <h2 id="roles-title">مدیریت نقش ها</h2>
+            <p>نقش‌ها را تعریف کنید، محدوده دسترسی را ببینید و برای هر گروه سطح مجوز مشخص کنید.</p>
+          </div>
+          <div class="panel-actions">
+            <button type="button" class="ghost-button">بازبینی دسترسی‌ها</button>
+            <button type="button" class="primary-button">ایجاد نقش</button>
+          </div>
+        </div>
+
+        <div class="role-grid">
+          @for (role of roles; track role.title) {
+            <article class="role-card">
+              <div class="role-icon">
+                <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
+              </div>
+              <h3>{{ role.title }}</h3>
+              <p>{{ role.scope }}</p>
+              <div class="role-meta">
+                <span>{{ role.members }}</span>
+                <strong>{{ role.access }}</strong>
+              </div>
+            </article>
+          }
+        </div>
+
+        <div class="permission-matrix">
+          <h3>ماتریس دسترسی سریع</h3>
+          <div class="permission-row">
+            <span>مشاهده پرونده بیمار</span>
+            <b>مدیر، پزشک، پذیرش</b>
+          </div>
+          <div class="permission-row">
+            <span>ویرایش پرداخت‌ها</span>
+            <b>مدیر، مالی</b>
+          </div>
+          <div class="permission-row">
+            <span>گزارش‌های مدیریتی</span>
+            <b>فقط مدیر سیستم</b>
+          </div>
+        </div>
+      </section>
+    } @else {
+      <section class="management-panel" aria-labelledby="overview-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Clinic Overview</p>
+            <h2 id="overview-title">نمای کلی داشبورد</h2>
+            <p>این صفحه برای تکمیل ماژول‌های بعدی آماده شده و ساختار اصلی داشبورد را حفظ می‌کند.</p>
+          </div>
+        </div>
+
+        <div class="overview-grid">
+          <article>
+            <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+            <h3>کارهای امروز</h3>
+            <p>۱۲ پیگیری درمان، ۸ تایید نوبت و ۴ پیام جدید بیماران.</p>
+          </article>
+          <article>
+            <span class="material-symbols-outlined" aria-hidden="true">insights</span>
+            <h3>روند کلینیک</h3>
+            <p>نرخ تکمیل درمان‌ها و رضایت بیماران در حال رشد است.</p>
+          </article>
+        </div>
+      </section>
+    }
+  </main>
+</div>
