@@ -532,6 +532,8 @@ h1 span {
   .hero,
   .about,
   .contact,
+  .auth-shell,
+  .auth-shell--register,
   .feature-card--calm {
     grid-template-columns: 1fr;
   }
@@ -542,6 +544,23 @@ h1 span {
 
   .hero-visual {
     order: 1;
+  }
+
+  .auth-card--compact,
+  .auth-card--register {
+    max-width: 100%;
+  }
+
+  .auth-visual {
+    min-height: 20rem;
+  }
+
+  .auth-visual img {
+    min-height: 20rem;
+  }
+
+  .register-intro {
+    min-height: auto;
   }
 
   .service-grid,
@@ -592,5 +611,27 @@ h1 span {
   .feature-card--wide,
   .feature-card--calm {
     grid-column: auto;
+  }
+
+  .auth-showcase {
+    padding-block: 3rem;
+  }
+
+  .auth-card,
+  .register-intro {
+    border-radius: 1.25rem;
+  }
+
+  .auth-card__header--right {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .auth-visual {
+    display: none;
+  }
+
+  .check-row--terms {
+    align-items: flex-start;
   }
 }
