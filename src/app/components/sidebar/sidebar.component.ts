@@ -1,6 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { SidebarItem } from '../../data/dashboard.data';
+export interface SidebarItem {
+  key: string;
+  label: string;
+  icon: string;
+}
 
 @Component({
   selector: 'app-sidebar',
@@ -9,10 +13,10 @@ import { SidebarItem } from '../../data/dashboard.data';
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
-  @Input({ required: true }) items: SidebarItem[] = [];
+  @Input() items: SidebarItem[] = [];
   @Input() isOpen = true;
-  @Input() title = 'DentalDashboard';
-  @Input() roleLabel = 'داشبورد';
+  @Input() title = 'Angular 20';
+  @Input() subtitle = 'Default layout';
   @Input() activeKey?: string;
   @Output() closeSidebar = new EventEmitter<void>();
   @Output() itemSelected = new EventEmitter<SidebarItem>();

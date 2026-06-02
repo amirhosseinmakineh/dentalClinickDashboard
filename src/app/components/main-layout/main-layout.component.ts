@@ -1,40 +1,31 @@
-import { Component, EventEmitter, HostListener, Input, OnInit, Output, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, HostListener } from '@angular/core';
 
-import { AuthSession } from '../../base/auth-session';
-import { needsCompleteProfile } from '../../base/role-routing';
-import { DashboardConfig, SidebarItem } from '../../data/dashboard.data';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
-import { SidebarComponent } from '../sidebar/sidebar.component';
+import { SidebarComponent, SidebarItem } from '../sidebar/sidebar.component';
 
 @Component({
   selector: 'app-main-layout',
-  imports: [DashboardHeaderComponent, SidebarComponent, RouterLink],
+  imports: [DashboardHeaderComponent, SidebarComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'
 })
-export class MainLayoutComponent implements OnInit {
-  private readonly router = inject(Router);
-
-  @Input({ required: true }) config!: DashboardConfig;
-  @Input() hideDefaultContent = false;
-  @Input() activeSidebarKey?: string;
-  @Output() sidebarItemSelected = new EventEmitter<SidebarItem>();
-
-  user = AuthSession.getUser();
+export class MainLayoutComponent {
   isSidebarOpen = true;
+  activeSidebarKey = 'overview';
 
-  get shouldShowCompleteProfileAlert(): boolean {
-    return needsCompleteProfile(this.user);
-  }
-
-  ngOnInit(): void {
-    this.syncSidebar(window.innerWidth);
-  }
+  readonly sidebarItems: SidebarItem[] = [
+    { key: 'overview', label: 'Overview', icon: '⌂' },
+    { key: 'workspace', label: 'Workspace', icon: '▦' },
+    { key: 'settings', label: 'Settings', icon: '⚙' }
+  ];
 
   @HostListener('window:resize', ['$event'])
   onResize(event: UIEvent): void {
     this.syncSidebar((event.target as Window).innerWidth);
+  }
+
+  constructor() {
+    this.syncSidebar(window.innerWidth);
   }
 
   toggleSidebar(): void {
@@ -48,13 +39,8 @@ export class MainLayoutComponent implements OnInit {
   }
 
   selectSidebarItem(item: SidebarItem): void {
-    this.sidebarItemSelected.emit(item);
+    this.activeSidebarKey = item.key;
     this.closeMobileSidebar();
-  }
-
-  logout(): void {
-    AuthSession.clear();
-    void this.router.navigateByUrl('/');
   }
 
   private syncSidebar(width: number): void {
