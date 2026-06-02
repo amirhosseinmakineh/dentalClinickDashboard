@@ -6,7 +6,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
-    title: 'Angular 20 Starter'
+    title: 'کلینیک دندانپزشکی دلخند'
   },
   {
     path: '**',
