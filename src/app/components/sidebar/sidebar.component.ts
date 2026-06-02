@@ -19,5 +19,6 @@ export class SidebarComponent {
   @Input() subtitle = 'Default layout';
   @Input() activeKey?: string;
   @Output() closeSidebar = new EventEmitter<void>();
+  @Output() toggleSidebar = new EventEmitter<void>();
   @Output() itemSelected = new EventEmitter<SidebarItem>();
 }
