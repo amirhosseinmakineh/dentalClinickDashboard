@@ -1,5 +1,17 @@
 :host {
   display: block;
+  --color-background: #faf9f6;
+  --color-surface: #ffffff;
+  --color-secondary: #eee0d2;
+  --color-secondary-container: #f6eadf;
+  --color-primary: #77583a;
+  --color-primary-hover: #5c4125;
+  --color-on-secondary: #4e453b;
+  --color-text: #1a1c1a;
+  --color-muted: #4f453c;
+  --color-outline: #81756b;
+  --color-outline-soft: #d3c4b8;
+  --shadow-soft: 0 0.25rem 1.25rem rgba(74, 69, 62, 0.04);
 }
 
 .auth-showcase {

@@ -119,12 +119,14 @@ select {
 
 .nav-links a,
 .login-link,
+.signup-link,
 .footer-inner nav a {
   transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .nav-links a:hover,
 .login-link:hover,
+.signup-link:hover,
 .footer-inner nav a:hover,
 .nav-links .active {
   color: var(--color-primary);
@@ -136,10 +138,19 @@ select {
   padding-bottom: 0.25rem;
 }
 
-.login-link {
+.login-link,
+.signup-link {
   color: var(--color-muted);
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.signup-link {
+  border: 1px solid var(--color-outline-soft);
+  border-radius: 999rem;
+  padding: 0.45rem 1rem;
+  background: var(--color-secondary-container);
+  color: var(--color-primary);
 }
 
 .pill-button,
@@ -591,6 +602,10 @@ h1 span {
 
   .login-link {
     display: none;
+  }
+
+  .signup-link {
+    padding-inline: 0.8rem;
   }
 
   .hero-actions,
