@@ -18,7 +18,7 @@ body {
 }
 
 body {
-  background: #fff8f3;
+  background: #faf9f6;
   color: #1f1b15;
   font-family: inherit;
   text-rendering: optimizeLegibility;
@@ -37,27 +37,30 @@ select {
 }
 
 ::-webkit-scrollbar-track {
-  background: #fff8f3;
+  background: #faf9f6;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e4e4cc;
+  background: #d1c5b7;
   border-radius: 999rem;
 }
 
 .landing-page {
-  --color-background: #fff8f3;
+  --color-background: #faf9f6;
   --color-surface: #ffffff;
-  --color-surface-low: #fbf2e8;
-  --color-surface-container: #f6ece3;
-  --color-surface-high: #eae1d7;
-  --color-secondary: #5e604d;
-  --color-secondary-container: #e1e1c9;
-  --color-secondary-fixed: #e4e4cc;
-  --color-text: #1f1b15;
-  --color-muted: #4d4635;
-  --color-outline: #7f7663;
-  --color-outline-soft: #d0c5af;
+  --color-surface-low: #f4f0ea;
+  --color-surface-container: #eee0d2;
+  --color-surface-high: #e8d8c9;
+  --color-primary: #77583a;
+  --color-primary-hover: #5c4125;
+  --color-secondary: #eee0d2;
+  --color-secondary-container: #f6eadf;
+  --color-secondary-fixed: #d1c5b7;
+  --color-on-secondary: #4e453b;
+  --color-text: #1a1c1a;
+  --color-muted: #4f453c;
+  --color-outline: #81756b;
+  --color-outline-soft: #d3c4b8;
   --shadow-soft: 0 0.25rem 1.25rem rgba(74, 69, 62, 0.04);
   --shadow-hover: 0 0.75rem 2.25rem rgba(74, 69, 62, 0.1);
 
@@ -89,12 +92,12 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: rgba(255, 248, 243, 0.86);
+  background: rgba(250, 249, 246, 0.9);
   backdrop-filter: blur(1rem);
 }
 
 .brand {
-  color: var(--color-secondary);
+  color: var(--color-primary);
   font-size: clamp(1.25rem, 2vw, 1.5rem);
   font-weight: 800;
   white-space: nowrap;
@@ -116,27 +119,38 @@ select {
 
 .nav-links a,
 .login-link,
+.signup-link,
 .footer-inner nav a {
   transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .nav-links a:hover,
 .login-link:hover,
+.signup-link:hover,
 .footer-inner nav a:hover,
 .nav-links .active {
-  color: var(--color-secondary);
+  color: var(--color-primary);
 }
 
 .nav-links .active {
-  border-bottom: 2px solid var(--color-secondary);
+  border-bottom: 2px solid var(--color-primary);
   font-weight: 800;
   padding-bottom: 0.25rem;
 }
 
-.login-link {
+.login-link,
+.signup-link {
   color: var(--color-muted);
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.signup-link {
+  border: 1px solid var(--color-outline-soft);
+  border-radius: 999rem;
+  padding: 0.45rem 1rem;
+  background: var(--color-secondary-container);
+  color: var(--color-primary);
 }
 
 .pill-button,
@@ -153,7 +167,7 @@ select {
 }
 
 .pill-button {
-  background: var(--color-secondary);
+  background: var(--color-primary);
   color: #ffffff;
   box-shadow: var(--shadow-soft);
 }
@@ -204,7 +218,7 @@ select {
 
 .eyebrow {
   margin: 0;
-  color: var(--color-secondary);
+  color: var(--color-primary);
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: 0.01em;
@@ -230,7 +244,7 @@ h1,
 }
 
 h1 span {
-  color: var(--color-secondary);
+  color: var(--color-primary);
 }
 
 .hero-text,
@@ -259,7 +273,7 @@ h1 span {
   inset: -1rem;
   z-index: 0;
   border-radius: 999rem;
-  background: rgba(228, 228, 204, 0.45);
+  background: rgba(238, 224, 210, 0.7);
   filter: blur(3rem);
 }
 
@@ -336,7 +350,7 @@ h1 span {
   justify-content: center;
   border-radius: 999rem;
   background: var(--color-secondary-container);
-  color: var(--color-secondary);
+  color: var(--color-primary);
   font-size: 2.5rem;
 }
 
@@ -372,7 +386,7 @@ h1 span {
   min-width: 10rem;
   padding: 1.25rem 1.5rem;
   border-radius: 1.25rem;
-  background: var(--color-secondary);
+  background: var(--color-primary);
   color: #ffffff;
 }
 
@@ -400,7 +414,7 @@ h1 span {
 .contact-card > .material-symbols-outlined,
 .feature-card > .material-symbols-outlined,
 .feature-card div > .material-symbols-outlined {
-  color: var(--color-secondary);
+  color: var(--color-primary);
   font-size: 2rem;
 }
 
@@ -429,7 +443,7 @@ h1 span {
 }
 
 .feature-card--accent {
-  background: var(--color-secondary);
+  background: var(--color-primary);
   color: #ffffff;
 }
 
@@ -516,9 +530,10 @@ h1 span {
 }
 
 .footer-inner nav a {
-  color: var(--color-secondary);
+  color: var(--color-primary);
   opacity: 0.8;
 }
+
 
 @media (max-width: 960px) {
   .nav-links {
@@ -559,6 +574,7 @@ h1 span {
 @media (max-width: 640px) {
   .top-nav {
     align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   .nav-actions {
@@ -567,6 +583,10 @@ h1 span {
 
   .login-link {
     display: none;
+  }
+
+  .signup-link {
+    padding-inline: 0.8rem;
   }
 
   .hero-actions,
