@@ -10,7 +10,7 @@
     </nav>
 
     <div class="nav-actions">
-      <a class="login-link" href="#contact">ورود / ثبت‌نام</a>
+      <a class="login-link" href="#login">ورود / ثبت‌نام</a>
       <a class="pill-button pill-button--small" href="#contact">رزرو نوبت</a>
     </div>
   </header>
@@ -173,6 +173,141 @@
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ1E5fBZEuRcD7uUesuFD8GIbNpAKY6zAvv6MmcRNyrGU4wCsHxnrSVTJztfIQC7k-HZLaIijWJ-0q_UBCwB1PS0dwd9op5cxr0_Tn4voApq4FVUE4B6g6jK7lhGJvPMGLTidTKy7Nk4pwaoKWuH4K9P3trCdtG_RBhv6XvnK3izO6UqipmsJk0taC9X7307COEgxGr7hAJvsgnCZJI_JzSv4z7iL4q0mPqlad6kyMYXDIP6IgquYcsoP3aWVIg-J8yDHxXHebNQ"
           alt="نقشه موقعیت کلینیک دندانپزشکی دل‌خند در تهران"
         />
+      </div>
+    </section>
+
+    <section class="auth-showcase" id="login" aria-labelledby="login-title">
+      <div class="section-shell auth-shell auth-shell--login">
+        <div class="auth-card auth-card--compact">
+          <div class="auth-card__header">
+            <div class="auth-icon" aria-hidden="true">
+              <span class="material-symbols-outlined">lock</span>
+            </div>
+            <p class="eyebrow">ورود امن</p>
+            <h2 id="login-title">خوش آمدید</h2>
+            <p>لطفاً برای دسترسی به پنل کاربری دل‌خند وارد شوید.</p>
+          </div>
+
+          <form class="auth-form" aria-label="فرم نمایشی ورود">
+            <div class="form-field">
+              <label for="login-identity">شماره همراه یا ایمیل</label>
+              <div class="input-wrap input-wrap--ltr-value">
+                <input id="login-identity" name="identity" type="text" placeholder="09123456789" autocomplete="username" />
+                <span class="material-symbols-outlined" aria-hidden="true">person</span>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <div class="label-row">
+                <label for="login-password">رمز عبور</label>
+                <a href="#register">فراموشی رمز؟</a>
+              </div>
+              <div class="input-wrap input-wrap--password">
+                <input id="login-password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+                <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+                <button type="button" aria-label="نمایش رمز عبور">
+                  <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="check-row">
+              <input id="remember-me" type="checkbox" />
+              <label for="remember-me">مرا به خاطر بسپار</label>
+            </div>
+
+            <button class="auth-submit" type="button">ورود به حساب کاربری</button>
+          </form>
+
+          <p class="auth-switch">هنوز حساب کاربری ندارید؟ <a href="#register">ثبت‌نام کنید</a></p>
+        </div>
+
+        <div class="auth-visual auth-visual--login" aria-hidden="true">
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtMX538IoglcaslZmjfguwiyX_9LcxtVb6fbBvFaaZ0WWWqVpRZai-tzZJdVgBeOSpUaTEd0mRnbYUoo2reokJdt3P1RpJXh9t0TtK49hFCHekvXrkAyuu64xn_9E5xkRfbpXP1iTOrnR7IJ7p40P152Wgz8Em3XpBMQpHB4fS621W01sG2gnyS6YQuNBSA1fKJSFnCJtbCt6ylPRAqeDL4_9FSn98rSRWWOqKvf0ul90_EqhNwXcJhTVZrFGrb1VRAIk-L9gqYg"
+            alt="فضای آرام و مدرن کلینیک دندانپزشکی"
+          />
+          <div class="auth-floating-note">
+            <span class="material-symbols-outlined">verified_user</span>
+            <strong>ورود امن به پنل بیماران</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-showcase auth-showcase--cream" id="register" aria-labelledby="register-title">
+      <div class="section-shell auth-shell auth-shell--register">
+        <aside class="register-intro" aria-label="معرفی ثبت‌نام در دل‌خند">
+          <p class="eyebrow">عضویت در دل‌خند</p>
+          <h2>کلینیک دندانپزشکی دل‌خند</h2>
+          <p>
+            تجربه‌ای آرام و دلپذیر از مراقبت‌های دندانپزشکی در فضایی مدرن و حرفه‌ای. لبخند شما، تخصص ماست.
+          </p>
+          <div class="intro-list">
+            <div>
+              <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+              <span>تجهیزات پیشرفته و کادر مجرب</span>
+            </div>
+            <div>
+              <span class="material-symbols-outlined" aria-hidden="true">spa</span>
+              <span>محیطی آرام و بدون استرس</span>
+            </div>
+          </div>
+        </aside>
+
+        <div class="auth-card auth-card--register">
+          <div class="auth-card__header auth-card__header--right">
+            <p class="eyebrow">ثبت‌نام سریع</p>
+            <h2 id="register-title">ایجاد حساب کاربری</h2>
+            <p>برای بهره‌مندی از خدمات آنلاین دل‌خند، اطلاعات خود را وارد کنید.</p>
+          </div>
+
+          <form class="auth-form auth-form--register" aria-label="فرم نمایشی ثبت‌نام">
+            <div class="form-field">
+              <label for="register-name">نام و نام خانوادگی</label>
+              <div class="input-wrap">
+                <input id="register-name" name="name" type="text" placeholder="مثال: علی محمدی" autocomplete="name" />
+                <span class="material-symbols-outlined" aria-hidden="true">person</span>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="register-phone">شماره موبایل</label>
+              <div class="input-wrap input-wrap--ltr-value">
+                <input id="register-phone" name="phone" type="tel" placeholder="0912 345 6789" autocomplete="tel" />
+                <span class="material-symbols-outlined" aria-hidden="true">phone_iphone</span>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="register-email">آدرس ایمیل</label>
+              <div class="input-wrap input-wrap--ltr-value">
+                <input id="register-email" name="email" type="email" placeholder="example@gmail.com" autocomplete="email" />
+                <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="register-password">رمز عبور</label>
+              <div class="input-wrap input-wrap--password">
+                <input id="register-password" name="password" type="password" placeholder="••••••••" autocomplete="new-password" />
+                <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+                <button type="button" aria-label="نمایش رمز عبور">
+                  <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="check-row check-row--terms">
+              <input id="terms" type="checkbox" />
+              <label for="terms">با ثبت‌نام، تمامی <a href="#register">قوانین و مقررات</a> کلینیک دل‌خند را می‌پذیرم.</label>
+            </div>
+
+            <button class="auth-submit" type="button">ثبت‌نام</button>
+          </form>
+
+          <p class="auth-switch">قبلاً حساب کاربری ساخته‌اید؟ <a href="#login">وارد شوید</a></p>
+        </div>
       </div>
     </section>
   </main>
