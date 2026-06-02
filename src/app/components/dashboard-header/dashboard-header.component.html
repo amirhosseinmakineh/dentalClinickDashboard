@@ -1,18 +1,7 @@
 <header class="dashboard-header">
-  <button class="icon-button" type="button" aria-label="باز و بسته کردن سایدبار" (click)="toggleSidebar.emit()">☰</button>
+  <button class="icon-button" type="button" aria-label="Toggle sidebar" (click)="toggleSidebar.emit()">☰</button>
   <div class="header-title">
     <h1>{{ title }}</h1>
     <p>{{ subtitle }}</p>
-  </div>
-  <div class="header-actions">
-    <a class="home-link" routerLink="/">صفحه اصلی</a>
-    <div class="user-chip" aria-label="کاربر فعلی">
-      <span class="avatar">{{ (user?.firstName || 'ک').charAt(0) }}</span>
-      <div>
-        <strong>{{ user?.firstName || 'کاربر' }} {{ user?.lastName || '' }}</strong>
-        <small>{{ user?.phoneNumber || 'بدون شماره' }}</small>
-      </div>
-    </div>
-    <button class="logout-button" type="button" (click)="logout.emit()">خروج</button>
   </div>
 </header>
