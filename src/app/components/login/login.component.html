@@ -10,11 +10,11 @@
         <p>لطفاً برای دسترسی به پنل کاربری دل‌خند وارد شوید.</p>
       </div>
 
-      <form class="auth-form" aria-label="فرم نمایشی ورود">
+      <form class="auth-form" aria-label="فرم ورود" (ngSubmit)="submit()">
         <div class="form-field">
           <label for="login-identity">شماره همراه یا ایمیل</label>
           <div class="input-wrap input-wrap--ltr-value">
-            <input id="login-identity" name="identity" type="text" placeholder="09123456789" autocomplete="username" />
+            <input id="login-identity" name="phoneNumber" type="text" placeholder="09123456789" autocomplete="username" [(ngModel)]="phoneNumber" />
             <span class="material-symbols-outlined" aria-hidden="true">person</span>
           </div>
         </div>
@@ -25,9 +25,9 @@
             <a href="#register">فراموشی رمز؟</a>
           </div>
           <div class="input-wrap input-wrap--password">
-            <input id="login-password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+            <input id="login-password" name="password" [type]="isPasswordVisible ? 'text' : 'password'" placeholder="••••••••" autocomplete="current-password" [(ngModel)]="passwordHash" />
             <span class="material-symbols-outlined" aria-hidden="true">lock</span>
-            <button type="button" aria-label="نمایش رمز عبور">
+            <button type="button" aria-label="نمایش رمز عبور" (click)="togglePasswordVisibility()">
               <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
             </button>
           </div>
@@ -38,7 +38,7 @@
           <label for="remember-me">مرا به خاطر بسپار</label>
         </div>
 
-        <button class="auth-submit" type="button">ورود به حساب کاربری</button>
+        <button class="auth-submit" type="submit" [disabled]="isSubmitting">{{ isSubmitting ? 'در حال ورود...' : 'ورود به حساب کاربری' }}</button>
       </form>
 
       <p class="auth-switch">هنوز حساب کاربری ندارید؟ <a href="#register">ثبت‌نام کنید</a></p>

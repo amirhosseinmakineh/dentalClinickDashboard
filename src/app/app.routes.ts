@@ -27,6 +27,36 @@ export const routes: Routes = [
     title: 'داشبورد مدیریت دلخند'
   },
   {
+    path: 'consultant/dashboard',
+    component: DashboardComponent,
+    title: 'داشبورد مشاور'
+  },
+  {
+    path: 'consultant/my-leads',
+    component: DashboardComponent,
+    title: 'لیدهای من'
+  },
+  {
+    path: 'consultant/realtime-leads',
+    component: DashboardComponent,
+    title: 'لیدهای لحظه‌ای'
+  },
+  {
+    path: 'consultant/offline-queue',
+    component: DashboardComponent,
+    title: 'صف لیدهای آفلاین'
+  },
+  {
+    path: 'consultant/notifications',
+    component: DashboardComponent,
+    title: 'اعلان‌های مشاور'
+  },
+  {
+    path: 'consultant/profile',
+    component: DashboardComponent,
+    title: 'پروفایل مشاور'
+  },
+  {
     path: '**',
     redirectTo: ''
   }
