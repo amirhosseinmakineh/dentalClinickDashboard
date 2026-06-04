@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
@@ -11,6 +12,7 @@ import { createPaginatedResult, PaginatedResult } from '../../models/paginated-r
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthService } from '../../services/auth.service';
 import { AdminManagementService } from '../../services/admin-management.service';
+import { ConsultantProfileCompletionComponent } from '../consultant-profile-completion/consultant-profile-completion.component';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { RoleManagementComponent, RoleRow } from '../role-management/role-management.component';
 import { SidebarComponent, SidebarItem } from '../sidebar/sidebar.component';
@@ -50,7 +52,7 @@ interface JalaliDay {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent],
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent, ConsultantProfileCompletionComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -86,6 +88,7 @@ export class DashboardComponent implements OnInit {
   private readonly adminManagementService = inject(AdminManagementService);
   private readonly authSession = inject(AuthSessionService);
   private readonly toastr = inject(ToastrService);
+  private readonly router = inject(Router);
 
   private readonly jalaliFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     year: 'numeric',
@@ -125,6 +128,7 @@ export class DashboardComponent implements OnInit {
   ];
 
   private readonly consultantSidebarItems: SidebarItem[] = [
+    { key: 'overview', label: 'نمای اولیه', icon: 'dashboard' },
     { key: 'appointments', label: 'نوبت‌ها', icon: 'calendar_month' },
     { key: 'reports', label: 'گزارش مشاوره', icon: 'monitoring' }
   ];
@@ -147,7 +151,7 @@ export class DashboardComponent implements OnInit {
     const today = this.getJalaliParts(new Date());
     this.currentJalaliYear = today.year;
     this.currentJalaliMonth = today.month;
-    this.activeKey = this.role === 'consultant' ? 'appointments' : 'overview';
+    this.activeKey = 'overview';
     this.buildCalendar();
   }
 
@@ -225,6 +229,11 @@ export class DashboardComponent implements OnInit {
 
     this.activeKey = item.key;
     this.closeSidebar();
+  }
+
+  logout(): void {
+    this.authSession.clear();
+    this.router.navigate(['/login']);
   }
 
   submitConsultantProfile(): void {

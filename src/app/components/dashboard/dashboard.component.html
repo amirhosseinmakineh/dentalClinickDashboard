@@ -12,33 +12,41 @@
   />
 
   <main class="dashboard-main">
-    <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" />
+    <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" (logout)="logout()" />
 
-    <section *ngIf="requiresConsultantProfile; else dashboardContent" class="profile-completion-panel" aria-labelledby="profile-completion-title">
-      <div class="profile-completion-card">
-        <span class="material-symbols-outlined" aria-hidden="true">lock_person</span>
-        <h2 id="profile-completion-title">تکمیل پروفایل مشاور</h2>
-        <p>تا زمانی که کد ملی و آدرس پروفایل مشاور ثبت نشود، هیچ بخشی از داشبورد فعال نخواهد بود.</p>
-
-        <form [formGroup]="profileForm" (ngSubmit)="submitConsultantProfile()">
-          <label for="consultant-national-code">کد ملی</label>
-          <input id="consultant-national-code" formControlName="nationalCode" type="text" inputmode="numeric" maxlength="10" placeholder="0012345678" />
-
-          <label for="consultant-address">آدرس</label>
-          <textarea id="consultant-address" formControlName="address" rows="4" placeholder="آدرس کامل"></textarea>
-
-          <button class="primary-button" type="submit" [disabled]="profileForm.invalid || isProfileSubmitting">
-            {{ isProfileSubmitting ? 'در حال ثبت...' : 'ثبت و فعال‌سازی داشبورد' }}
-          </button>
-        </form>
-      </div>
-    </section>
+    <app-consultant-profile-completion
+      *ngIf="requiresConsultantProfile; else dashboardContent"
+      [profileForm]="profileForm"
+      [isSubmitting]="isProfileSubmitting"
+      (profileSubmit)="submitConsultantProfile()"
+    />
 
     <ng-template #dashboardContent>
       <section class="content-canvas" aria-label="فضای محتوای اصلی">
         <div>
           <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
           <h2>{{ role === 'consultant' ? 'داشبورد مشاور' : 'داشبورد ادمین' }}</h2>
+        </div>
+      </section>
+
+      <section *ngIf="role === 'consultant' && activeKey === 'overview'" class="consultant-status-panel" aria-label="وضعیت سریع مشاور">
+        <article class="status-card">
+          <p class="eyebrow">Consultant Status</p>
+          <h2>وضعیت امروز مشاور</h2>
+          <p>این بخش فقط برای نقش مشاور نمایش داده می‌شود و کنترل‌ها فعلاً فقط ظاهر رابط کاربری هستند.</p>
+        </article>
+
+        <div class="status-actions" aria-label="کنترل‌های حضور و آنلاین بودن">
+          <label class="status-check">
+            <input type="checkbox" />
+            <span class="status-check__box" aria-hidden="true"></span>
+            <span>تیک حضور</span>
+          </label>
+          <label class="status-check">
+            <input type="checkbox" />
+            <span class="status-check__box" aria-hidden="true"></span>
+            <span>آنلاین / آفلاین</span>
+          </label>
         </div>
       </section>
 
