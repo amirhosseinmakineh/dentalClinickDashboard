@@ -65,7 +65,7 @@ export class LoginComponent {
           const session = this.authSession.setToken(token);
 
           this.toastr.success(result.message);
-          void this.router.navigate([session.role === 'admin' ? '/admin' : '/dashboard']);
+          void this.router.navigate([session.role === 'admin' ? '/admin' : '/consultant/dashboard']);
         },
         error: () => {
           this.toastr.error('خطا در ارتباط با سرور');

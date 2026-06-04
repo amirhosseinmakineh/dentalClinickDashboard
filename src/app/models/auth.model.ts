@@ -14,11 +14,14 @@ export interface LoginResponseData {
 
 export interface AuthSession {
   token: string;
+  userId: string;
   role: UserRole;
   isCompleteProfile: boolean;
 }
 
 export interface CompleteConsultantProfileCommand {
-  nationalCode: string;
-  address: string;
+  UserId: string;
+  NationalityCode: string;
+  Address: string;
+  IsCompleteProfile: boolean;
 }

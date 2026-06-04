@@ -1,0 +1,122 @@
+<div class="consultant-dashboard-shell" dir="rtl" [class.is-sidebar-closed]="!isSidebarOpen" [class.is-profile-blocked]="requiresProfileCompletion">
+  <app-sidebar
+    *ngIf="!requiresProfileCompletion"
+    [items]="sidebarItems"
+    [isOpen]="isSidebarOpen"
+    [activeKey]="activeKey"
+    title="دل‌خند"
+    subtitle="مشاور"
+    (toggleSidebar)="toggleSidebar()"
+    (closeSidebar)="closeSidebar()"
+    (itemSelected)="setActive($event)"
+  />
+
+  <main class="consultant-dashboard-main">
+    <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" (logout)="logout()" />
+
+    <section *ngIf="requiresProfileCompletion; else consultantContent" class="profile-completion-panel" aria-labelledby="profile-completion-title">
+      <div class="profile-completion-card">
+        <span class="material-symbols-outlined" aria-hidden="true">lock_person</span>
+        <h2 id="profile-completion-title">تکمیل پروفایل مشاور</h2>
+        <p>تا زمانی که کد ملی و آدرس پروفایل مشاور ثبت نشود، هیچ بخشی از داشبورد فعال نخواهد بود.</p>
+
+        <form [formGroup]="profileForm" (ngSubmit)="submitConsultantProfile()">
+          <label for="consultant-national-code">کد ملی</label>
+          <input id="consultant-national-code" formControlName="nationalCode" type="text" inputmode="numeric" maxlength="10" placeholder="0012345678" />
+
+          <label for="consultant-address">آدرس</label>
+          <textarea id="consultant-address" formControlName="address" rows="4" placeholder="آدرس کامل"></textarea>
+
+          <button class="primary-button" type="submit" [disabled]="profileForm.invalid || isProfileSubmitting">
+            {{ isProfileSubmitting ? 'در حال ثبت...' : 'ثبت و فعال‌سازی داشبورد' }}
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <ng-template #consultantContent>
+      <section class="content-canvas" aria-label="فضای محتوای مشاور">
+        <div>
+          <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
+          <h2>داشبورد مشاور</h2>
+        </div>
+      </section>
+
+      <section *ngIf="activeKey === 'overview'" class="consultant-status-panel" aria-label="وضعیت سریع مشاور">
+        <article class="status-card">
+          <p class="eyebrow">Consultant Status</p>
+          <h2>وضعیت امروز مشاور</h2>
+          <p>این کنترل‌ها فعلاً فقط برای نمایش رابط کاربری هستند.</p>
+        </article>
+
+        <div class="status-actions" aria-label="کنترل‌های حضور و آنلاین بودن">
+          <label class="status-check">
+            <input type="checkbox" />
+            <span class="status-check__box" aria-hidden="true"></span>
+            <span>تیک حضور</span>
+          </label>
+          <label class="status-check">
+            <input type="checkbox" />
+            <span class="status-check__box" aria-hidden="true"></span>
+            <span>آنلاین / آفلاین</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-label="شاخص‌های مشاور">
+        <article class="stat-card" *ngFor="let stat of stats; trackBy: trackByLabel">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
+          <div>
+            <p>{{ stat.label }}</p>
+            <strong>{{ stat.value }}</strong>
+            <small>{{ stat.trend }}</small>
+          </div>
+        </article>
+      </section>
+
+      <ng-container [ngSwitch]="activeKey">
+        <section *ngSwitchCase="'overview'" class="management-panel" aria-labelledby="consultant-overview-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Consultant Access</p>
+              <h2 id="consultant-overview-title">نمای اولیه مشاور</h2>
+            </div>
+          </div>
+
+          <div class="overview-grid">
+            <article>
+              <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+              <h3>کارهای امروز</h3>
+              <p>۱۲ پیگیری درمان، ۸ تایید نوبت و ۴ پیام جدید بیماران.</p>
+            </article>
+            <article>
+              <span class="material-symbols-outlined" aria-hidden="true">insights</span>
+              <h3>روند مشاوره</h3>
+              <p>پیگیری‌های مشاور و وضعیت پاسخ‌گویی در حال بهبود است.</p>
+            </article>
+          </div>
+        </section>
+
+        <section *ngSwitchCase="'appointments'" class="management-panel" aria-labelledby="consultant-appointments-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Appointments</p>
+              <h2 id="consultant-appointments-title">نوبت‌ها</h2>
+            </div>
+          </div>
+          <p class="status-message">نمای نوبت‌های مشاور آماده اتصال به API است.</p>
+        </section>
+
+        <section *ngSwitchCase="'reports'" class="management-panel" aria-labelledby="consultant-reports-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Reports</p>
+              <h2 id="consultant-reports-title">گزارش مشاوره</h2>
+            </div>
+          </div>
+          <p class="status-message">گزارش‌های مشاور آماده اتصال به API است.</p>
+        </section>
+      </ng-container>
+    </ng-template>
+  </main>
+</div>
