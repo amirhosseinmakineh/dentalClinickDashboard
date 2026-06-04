@@ -11,6 +11,7 @@ import { Gender } from '../../models/register-command.model';
 import { createPaginatedResult, PaginatedResult } from '../../models/paginated-result.model';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AdminManagementService } from '../../services/admin-management.service';
+import { ConsultantProfileCompletionComponent } from '../consultant-profile-completion/consultant-profile-completion.component';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { RoleManagementComponent, RoleRow } from '../role-management/role-management.component';
 import { SidebarComponent, SidebarItem } from '../sidebar/sidebar.component';
@@ -50,7 +51,7 @@ interface JalaliDay {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent],
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent, ConsultantProfileCompletionComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
