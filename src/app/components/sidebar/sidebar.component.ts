@@ -7,6 +7,7 @@ export interface SidebarItem {
   icon: string;
   route?: string;
   roles?: string[];
+  componentName?: string;
 }
 
 @Component({

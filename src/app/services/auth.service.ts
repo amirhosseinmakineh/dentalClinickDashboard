@@ -1,11 +1,10 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 
 import { ApiResult } from '../models/api-result.model';
-import { CompleteConsultantProfileCommand, LoginCommand, LoginResponseData } from '../models/auth.model';
+import { LoginCommand, LoginResponseData } from '../models/auth.model';
 import { RegisterCommand } from '../models/register-command.model';
-import { AuthSessionService } from './auth-session.service';
 
 type ApiResultResponse<T> = ApiResult<T> & {
   IsSuccess?: boolean;
@@ -17,10 +16,7 @@ type ApiResultResponse<T> = ApiResult<T> & {
 export class AuthService {
   private readonly apiBaseUrl = 'http://localhost:5182/api';
 
-  constructor(
-    private readonly http: HttpClient,
-    private readonly authSession: AuthSessionService
-  ) {}
+  constructor(private readonly http: HttpClient) {}
 
   login(command: LoginCommand): Observable<ApiResult<LoginResponseData>> {
     return this.http.post<ApiResultResponse<LoginResponseData>>(`${this.apiBaseUrl}/Auth/Login`, command).pipe(
@@ -34,20 +30,6 @@ export class AuthService {
       map((response) => this.normalizeResult(response)),
       catchError((error: HttpErrorResponse) => of(this.toFailureResult<object>(error)))
     );
-  }
-
-  completeConsultantProfile(command: CompleteConsultantProfileCommand): Observable<ApiResult<object>> {
-    return this.http.post<ApiResultResponse<object>>(`${this.apiBaseUrl}/Auth/CompleteConsultantProfile`, command, {
-      headers: this.getAuthorizationHeaders()
-    }).pipe(
-      map((response) => this.normalizeResult(response)),
-      catchError((error: HttpErrorResponse) => of(this.toFailureResult<object>(error)))
-    );
-  }
-
-  private getAuthorizationHeaders(): HttpHeaders {
-    const token = this.authSession.getToken();
-    return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
   private normalizeResult<T>(response: ApiResultResponse<T>): ApiResult<T> {

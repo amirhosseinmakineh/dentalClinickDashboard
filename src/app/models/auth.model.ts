@@ -14,11 +14,8 @@ export interface LoginResponseData {
 
 export interface AuthSession {
   token: string;
+  userId: string;
+  profileId: number;
   role: UserRole;
   isCompleteProfile: boolean;
-}
-
-export interface CompleteConsultantProfileCommand {
-  nationalCode: string;
-  address: string;
 }

@@ -1,0 +1,80 @@
+<section class="consultant-status-page" dir="rtl" aria-labelledby="consultant-status-title">
+  <header class="status-hero">
+    <div>
+      <p class="eyebrow">Consultant Status</p>
+      <h2 id="consultant-status-title">مدیریت وضعیت مشاور</h2>
+      <p>در این صفحه فقط وضعیت حضور و آنلاین/آفلاین بودن شما ثبت می‌شود.</p>
+    </div>
+    <span class="material-symbols-outlined" aria-hidden="true">support_agent</span>
+  </header>
+
+  <div class="status-grid">
+    <article class="status-card" [class.is-active]="statusState.isAvailable">
+      <div class="status-card__header">
+        <span class="material-symbols-outlined" aria-hidden="true">how_to_reg</span>
+        <div>
+          <h3>وضعیت حضور</h3>
+          <p>{{ statusState.isAvailable ? 'حاضر هستید' : 'حضور ثبت نشده' }}</p>
+        </div>
+      </div>
+
+      <div class="status-badge" [class.status-badge--success]="statusState.isAvailable">
+        {{ statusState.isAvailable ? 'حاضر هستید' : 'حضور ثبت نشده' }}
+      </div>
+
+      <div class="status-actions">
+        <button
+          type="button"
+          class="success-button"
+          [disabled]="statusState.isSubmittingAvailable || statusState.isAvailable"
+          (click)="setAvailable(true)"
+        >
+          {{ statusState.isSubmittingAvailable ? 'در حال ثبت...' : 'حضور دارم' }}
+        </button>
+        <button
+          type="button"
+          class="ghost-button"
+          [disabled]="statusState.isSubmittingAvailable || !statusState.isAvailable"
+          (click)="setAvailable(false)"
+        >
+          {{ statusState.isSubmittingAvailable ? 'در حال ثبت...' : 'حضور ندارم' }}
+        </button>
+      </div>
+    </article>
+
+    <article class="status-card" [class.is-active]="statusState.isOnline">
+      <div class="status-card__header">
+        <span class="material-symbols-outlined" aria-hidden="true">wifi_tethering</span>
+        <div>
+          <h3>وضعیت دریافت لید</h3>
+          <p>{{ statusState.isOnline ? 'آنلاین هستید' : 'آفلاین هستید' }}</p>
+        </div>
+      </div>
+
+      <div class="status-badge" [class.status-badge--success]="statusState.isOnline">
+        {{ statusState.isOnline ? 'آنلاین هستید' : 'آفلاین هستید' }}
+      </div>
+
+      <p class="status-hint" *ngIf="!statusState.isAvailable">برای آنلاین شدن ابتدا باید حضور خود را ثبت کنید.</p>
+
+      <div class="status-actions">
+        <button
+          type="button"
+          class="success-button"
+          [disabled]="statusState.isSubmittingOnline || statusState.isOnline || !statusState.isAvailable"
+          (click)="setOnlineOffline(true)"
+        >
+          {{ statusState.isSubmittingOnline ? 'در حال ثبت...' : 'آنلاین هستم' }}
+        </button>
+        <button
+          type="button"
+          class="ghost-button"
+          [disabled]="statusState.isSubmittingOnline || !statusState.isOnline"
+          (click)="setOnlineOffline(false)"
+        >
+          {{ statusState.isSubmittingOnline ? 'در حال ثبت...' : 'آفلاین هستم' }}
+        </button>
+      </div>
+    </article>
+  </div>
+</section>

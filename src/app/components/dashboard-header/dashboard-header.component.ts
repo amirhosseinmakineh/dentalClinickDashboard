@@ -10,4 +10,5 @@ export class DashboardHeaderComponent {
   @Input() title = 'Angular 20 Starter';
   @Input() subtitle = 'Default Angular application shell with layout placeholders only.';
   @Output() toggleSidebar = new EventEmitter<void>();
+  @Output() logout = new EventEmitter<void>();
 }
