@@ -10,11 +10,11 @@
         <p>لطفاً برای دسترسی به پنل کاربری دل‌خند وارد شوید.</p>
       </div>
 
-      <form class="auth-form" aria-label="فرم نمایشی ورود">
+      <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submit()" aria-label="فرم ورود">
         <div class="form-field">
-          <label for="login-identity">شماره همراه یا ایمیل</label>
+          <label for="login-phone">شماره همراه</label>
           <div class="input-wrap input-wrap--ltr-value">
-            <input id="login-identity" name="identity" type="text" placeholder="09123456789" autocomplete="username" />
+            <input id="login-phone" formControlName="phoneNumber" type="tel" placeholder="09123456789" autocomplete="username" />
             <span class="material-symbols-outlined" aria-hidden="true">person</span>
           </div>
         </div>
@@ -22,26 +22,27 @@
         <div class="form-field">
           <div class="label-row">
             <label for="login-password">رمز عبور</label>
-            <a href="#register">فراموشی رمز؟</a>
+            <a routerLink="/register">ثبت‌نام</a>
           </div>
           <div class="input-wrap input-wrap--password">
-            <input id="login-password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+            <input
+              id="login-password"
+              formControlName="passwordHash"
+              [type]="isPasswordVisible ? 'text' : 'password'"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
             <span class="material-symbols-outlined" aria-hidden="true">lock</span>
-            <button type="button" aria-label="نمایش رمز عبور">
-              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            <button type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="isPasswordVisible ? 'مخفی کردن رمز عبور' : 'نمایش رمز عبور'">
+              <span class="material-symbols-outlined" aria-hidden="true">{{ isPasswordVisible ? 'visibility_off' : 'visibility' }}</span>
             </button>
           </div>
         </div>
 
-        <div class="check-row">
-          <input id="remember-me" type="checkbox" />
-          <label for="remember-me">مرا به خاطر بسپار</label>
-        </div>
-
-        <button class="auth-submit" type="button">ورود به حساب کاربری</button>
+        <button class="auth-submit" type="submit" [disabled]="loginForm.invalid || isSubmitting">
+          {{ isSubmitting ? 'در حال ورود...' : 'ورود به حساب کاربری' }}
+        </button>
       </form>
-
-      <p class="auth-switch">هنوز حساب کاربری ندارید؟ <a href="#register">ثبت‌نام کنید</a></p>
     </div>
 
     <div class="auth-visual auth-visual--login" aria-hidden="true">
@@ -51,7 +52,7 @@
       />
       <div class="auth-floating-note">
         <span class="material-symbols-outlined">verified_user</span>
-        <strong>ورود امن به پنل بیماران</strong>
+        <strong>ورود امن به پنل</strong>
       </div>
     </div>
   </div>

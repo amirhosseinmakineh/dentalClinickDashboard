@@ -297,3 +297,9 @@
     display: none;
   }
 }
+
+.auth-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}

@@ -1,5 +1,11 @@
 import { Component } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 
+import { UserRole } from '../../models/auth.model';
+import { AuthSessionService } from '../../services/auth-session.service';
+import { AuthService } from '../../services/auth.service';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { SidebarComponent, SidebarItem } from '../sidebar/sidebar.component';
 
@@ -27,20 +33,33 @@ interface RoleRow {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [SidebarComponent, DashboardHeaderComponent],
+  imports: [ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent {
   isSidebarOpen = true;
   activeKey = 'users';
+  isProfileSubmitting = false;
+  role: UserRole = 'unknown';
+  isCompleteProfile = true;
 
-  readonly sidebarItems: SidebarItem[] = [
+  readonly profileForm = this.formBuilder.group({
+    nationalCode: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+    address: ['', [Validators.required, Validators.maxLength(500)]]
+  });
+
+  private readonly adminSidebarItems: SidebarItem[] = [
     { key: 'users', label: 'مدیریت کاربران', icon: 'group' },
     { key: 'roles', label: 'مدیریت نقش ها', icon: 'admin_panel_settings' },
     { key: 'appointments', label: 'نوبت‌ها', icon: 'calendar_month' },
     { key: 'reports', label: 'گزارش‌ها', icon: 'monitoring' },
     { key: 'settings', label: 'تنظیمات کلینیک', icon: 'settings' }
+  ];
+
+  private readonly consultantSidebarItems: SidebarItem[] = [
+    { key: 'appointments', label: 'نوبت‌ها', icon: 'calendar_month' },
+    { key: 'reports', label: 'گزارش مشاوره', icon: 'monitoring' }
   ];
 
   readonly stats: DashboardStat[] = [
@@ -64,11 +83,43 @@ export class DashboardComponent {
     { title: 'مالی', members: '۳ کاربر', scope: 'پرداخت و فاکتور', access: 'محدود' }
   ];
 
+  constructor(
+    private readonly formBuilder: NonNullableFormBuilder,
+    private readonly authService: AuthService,
+    private readonly authSession: AuthSessionService,
+    private readonly toastr: ToastrService
+  ) {
+    const session = this.authSession.getSession();
+    this.role = session?.role ?? 'unknown';
+    this.isCompleteProfile = session?.isCompleteProfile ?? true;
+    this.activeKey = this.role === 'consultant' ? 'appointments' : 'users';
+  }
+
+  get sidebarItems(): SidebarItem[] {
+    if (this.requiresAdminProfile) {
+      return [];
+    }
+
+    return this.role === 'consultant' ? this.consultantSidebarItems : this.adminSidebarItems;
+  }
+
+  get requiresAdminProfile(): boolean {
+    return this.role === 'admin' && !this.isCompleteProfile;
+  }
+
   get activeTitle(): string {
-    return this.sidebarItems.find((item) => item.key === this.activeKey)?.label ?? 'داشبورد مدیریت';
+    return this.sidebarItems.find((item) => item.key === this.activeKey)?.label ?? 'داشبورد';
   }
 
   get activeSubtitle(): string {
+    if (this.requiresAdminProfile) {
+      return 'برای فعال شدن داشبورد، کد ملی و آدرس پروفایل ادمین را تکمیل کنید.';
+    }
+
+    if (this.role === 'consultant') {
+      return 'دسترسی شما محدود به امکانات مشاور است.';
+    }
+
     if (this.activeKey === 'users') {
       return 'کنترل کاربران، وضعیت حساب‌ها و سطح فعالیت پرسنل کلینیک';
     }
@@ -80,6 +131,18 @@ export class DashboardComponent {
     return 'نمای کلی عملیات کلینیک، دسترسی‌ها، گزارش‌ها و وضعیت روزانه';
   }
 
+  get roleLabel(): string {
+    if (this.role === 'admin') {
+      return 'ادمین';
+    }
+
+    if (this.role === 'consultant') {
+      return 'مشاور';
+    }
+
+    return 'کاربر';
+  }
+
   toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
@@ -88,7 +151,39 @@ export class DashboardComponent {
     this.isSidebarOpen = false;
   }
 
-  selectItem(item: SidebarItem): void {
+  setActive(item: SidebarItem): void {
+    if (this.requiresAdminProfile || !this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
+      return;
+    }
+
     this.activeKey = item.key;
+    this.closeSidebar();
+  }
+
+  submitAdminProfile(): void {
+    if (this.profileForm.invalid || this.isProfileSubmitting) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
+
+    this.isProfileSubmitting = true;
+    const value = this.profileForm.getRawValue();
+
+    this.authService
+      .completeAdminProfile({
+        nationalCode: value.nationalCode.trim(),
+        address: value.address.trim()
+      })
+      .pipe(finalize(() => (this.isProfileSubmitting = false)))
+      .subscribe((result) => {
+        if (!result.isSuccess) {
+          this.toastr.error(result.message);
+          return;
+        }
+
+        this.authSession.markProfileCompleted();
+        this.isCompleteProfile = true;
+        this.toastr.success(result.message);
+      });
   }
 }
