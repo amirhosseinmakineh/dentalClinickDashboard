@@ -1,29 +1,8 @@
 <section class="auth-showcase auth-showcase--cream" id="register" aria-labelledby="register-title" dir="rtl">
   <div class="section-shell auth-shell auth-shell--register">
-    <aside class="register-intro" aria-label="معرفی ثبت‌نام در دل‌خند">
-      <p class="eyebrow">عضویت در دل‌خند</p>
-      <h2>کلینیک دندانپزشکی دل‌خند</h2>
-      <p>
-        برای ایجاد حساب کاربری، همان اطلاعات پروفایل اولیه را وارد کنید تا درخواست ثبت‌نام به صورت مستقیم برای
-        سامانه ارسال شود.
-      </p>
-      <div class="intro-list">
-        <div>
-          <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
-          <span>ارسال اطلاعات ثبت‌نام به سرویس اصلی</span>
-        </div>
-        <div>
-          <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
-          <span>انتخاب تاریخ تولد به صورت شمسی</span>
-        </div>
-      </div>
-    </aside>
-
     <div class="auth-card auth-card--register">
       <div class="auth-card__header auth-card__header--right">
-        <p class="eyebrow">ثبت‌نام سریع</p>
-        <h2 id="register-title">ایجاد حساب کاربری</h2>
-        <p>اطلاعات زیر مطابق مدل ثبت‌نام دریافت می‌شود و تاریخ تولد به صورت میلادی برای بک‌اند ارسال می‌گردد.</p>
+        <h2 id="register-title">ثبت‌نام</h2>
       </div>
 
       <form class="auth-form auth-form--register" [formGroup]="registerForm" (ngSubmit)="submit()" aria-label="فرم ثبت‌نام">
@@ -124,34 +103,43 @@
           </div>
 
           <div class="form-field">
-            <label for="register-avatar">نام فایل تصویر آواتار</label>
-            <div class="input-wrap input-wrap--ltr-value">
-              <input id="register-avatar" type="text" formControlName="avatarImageName" placeholder="avatar.png" autocomplete="off" />
-              <span class="material-symbols-outlined" aria-hidden="true">image</span>
+            <label for="register-password">رمز عبور</label>
+            <div class="input-wrap input-wrap--password input-wrap--ltr-value">
+              <input
+                id="register-password"
+                formControlName="passwordHash"
+                [type]="isPasswordVisible ? 'text' : 'password'"
+                placeholder="••••••••"
+                autocomplete="new-password"
+              />
+              <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+              <button type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="isPasswordVisible ? 'مخفی کردن رمز عبور' : 'نمایش رمز عبور'">
+                <span class="material-symbols-outlined" aria-hidden="true">{{ isPasswordVisible ? 'visibility_off' : 'visibility' }}</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="form-field">
-          <label for="register-password">رمز عبور</label>
-          <div class="input-wrap input-wrap--password input-wrap--ltr-value">
-            <input
-              id="register-password"
-              formControlName="passwordHash"
-              [type]="isPasswordVisible ? 'text' : 'password'"
-              placeholder="••••••••"
-              autocomplete="new-password"
-            />
-            <span class="material-symbols-outlined" aria-hidden="true">lock</span>
-            <button type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="isPasswordVisible ? 'مخفی کردن رمز عبور' : 'نمایش رمز عبور'">
-              <span class="material-symbols-outlined" aria-hidden="true">{{ isPasswordVisible ? 'visibility_off' : 'visibility' }}</span>
-            </button>
-          </div>
+        <div class="form-field form-field--full">
+          <label for="register-avatar">تصویر آواتار</label>
+          <label class="avatar-upload" for="register-avatar">
+            <span class="avatar-preview" aria-hidden="true">
+              @if (selectedAvatarPreview) {
+                <img [src]="selectedAvatarPreview" alt="" />
+              } @else {
+                <span class="material-symbols-outlined">add_a_photo</span>
+              }
+            </span>
+            <span class="avatar-upload__text">
+              {{ selectedAvatarName || 'انتخاب تصویر' }}
+            </span>
+          </label>
+          <input id="register-avatar" class="file-input" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
         </div>
 
         <div class="check-row check-row--terms">
           <input id="complete-profile" type="checkbox" formControlName="isCompleteProfile" />
-          <label for="complete-profile">پروفایل کاربر کامل است</label>
+          <label for="complete-profile">پروفایل کامل است</label>
         </div>
 
         <button class="auth-submit" type="submit" [disabled]="registerForm.invalid || isSubmitting">
@@ -159,7 +147,7 @@
         </button>
       </form>
 
-      <p class="auth-switch">قبلاً حساب کاربری ساخته‌اید؟ <a routerLink="/login">وارد شوید</a></p>
+      <p class="auth-switch"><a routerLink="/login">ورود به حساب کاربری</a></p>
     </div>
   </div>
 </section>

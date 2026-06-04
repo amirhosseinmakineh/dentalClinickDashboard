@@ -50,6 +50,8 @@ export class RegisterComponent {
   isPasswordVisible = false;
   isDatepickerOpen = false;
   selectedJalaliDate = '';
+  selectedAvatarName = '';
+  selectedAvatarPreview = '';
   currentJalaliYear: number;
   currentJalaliMonth: number;
   calendarDays: Array<JalaliDay | null> = [];
@@ -100,6 +102,8 @@ export class RegisterComponent {
           });
 
           this.selectedJalaliDate = '';
+          this.selectedAvatarName = '';
+          this.selectedAvatarPreview = '';
           this.buildCalendar();
           return;
         }
@@ -155,6 +159,27 @@ export class RegisterComponent {
 
     this.isDatepickerOpen = false;
     this.buildCalendar();
+  }
+
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      this.selectedAvatarName = '';
+      this.selectedAvatarPreview = '';
+      this.registerForm.controls.avatarImageName.setValue('');
+      return;
+    }
+
+    this.selectedAvatarName = file.name;
+    this.registerForm.controls.avatarImageName.setValue(file.name);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.selectedAvatarPreview = typeof reader.result === 'string' ? reader.result : '';
+    };
+    reader.readAsDataURL(file);
   }
 
   @HostListener('document:click')
