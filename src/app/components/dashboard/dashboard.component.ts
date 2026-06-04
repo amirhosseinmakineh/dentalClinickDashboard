@@ -11,7 +11,7 @@ import { Gender } from '../../models/register-command.model';
 import { createPaginatedResult, PaginatedResult } from '../../models/paginated-result.model';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AdminManagementService } from '../../services/admin-management.service';
-import { ConsultantProfileCompletionComponent } from '../consultant-profile-completion/consultant-profile-completion.component';
+import { ConsultantDashboardComponent } from '../consultant-dashboard/consultant-dashboard.component';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { RoleManagementComponent, RoleRow } from '../role-management/role-management.component';
 import { SidebarComponent, SidebarItem } from '../sidebar/sidebar.component';
@@ -51,7 +51,7 @@ interface JalaliDay {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent, ConsultantProfileCompletionComponent],
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent, ConsultantDashboardComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -118,6 +118,11 @@ export class DashboardComponent implements OnInit {
     { key: 'reports', label: 'گزارش‌ها', icon: 'monitoring' }
   ];
 
+
+  private readonly consultantSidebarItems: SidebarItem[] = [
+    { key: 'consultant-dashboard', label: 'داشبورد مشاور', icon: 'dashboard', componentName: 'app-consultant-dashboard' }
+  ];
+
   readonly stats: DashboardStat[] = [
     { label: 'بیماران فعال', value: '۲,۴۸۰', trend: '+۱۲٪ نسبت به ماه قبل', icon: 'groups' },
     { label: 'نوبت‌های امروز', value: '۳۶', trend: '۸ نوبت در انتظار تایید', icon: 'event_available' },
@@ -135,7 +140,7 @@ export class DashboardComponent implements OnInit {
     const today = this.getJalaliParts(new Date());
     this.currentJalaliYear = today.year;
     this.currentJalaliMonth = today.month;
-    this.activeKey = 'overview';
+    this.activeKey = this.role === 'consultant' ? 'consultant-dashboard' : 'overview';
     this.buildCalendar();
   }
 
@@ -145,7 +150,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get sidebarItems(): SidebarItem[] {
-    return this.adminSidebarItems;
+    return this.role === 'consultant' ? this.consultantSidebarItems : this.adminSidebarItems;
   }
 
   get activeTitle(): string {
@@ -153,7 +158,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get activeSubtitle(): string {
-    return '';
+    return this.role === 'consultant' ? 'دسترسی شما محدود به امکانات مشاور است.' : '';
   }
 
   get roleLabel(): string {
