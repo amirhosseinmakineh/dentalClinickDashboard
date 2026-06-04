@@ -18,6 +18,7 @@
       *ngFor="let item of items; trackBy: trackByKey"
       [class.is-active]="activeKey === item.key"
       [title]="item.label"
+      [attr.data-component]="item.componentName || null"
       (click)="itemSelected.emit(item)"
     >
       <span class="material-symbols-outlined nav-icon" aria-hidden="true">{{ item.icon }}</span>

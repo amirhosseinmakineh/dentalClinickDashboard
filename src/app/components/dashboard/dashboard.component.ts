@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
@@ -9,8 +10,8 @@ import { UserRole } from '../../models/auth.model';
 import { Gender } from '../../models/register-command.model';
 import { createPaginatedResult, PaginatedResult } from '../../models/paginated-result.model';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { AuthService } from '../../services/auth.service';
 import { AdminManagementService } from '../../services/admin-management.service';
+import { ConsultantDashboardComponent } from '../consultant-dashboard/consultant-dashboard.component';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { RoleManagementComponent, RoleRow } from '../role-management/role-management.component';
 import { SidebarComponent, SidebarItem } from '../sidebar/sidebar.component';
@@ -50,19 +51,17 @@ interface JalaliDay {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent],
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent, ConsultantDashboardComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
   isSidebarOpen = true;
   activeKey = 'overview';
-  isProfileSubmitting = false;
   isDialogSubmitting = false;
   isUsersLoading = false;
   userLoadError = '';
   role: UserRole = 'unknown';
-  isCompleteProfile = true;
 
   userPageNumber = 1;
   readonly pageSizeOptions = [3, 5, 10];
@@ -82,10 +81,10 @@ export class DashboardComponent implements OnInit {
   selectedUser: UserRow | null = null;
 
   private readonly formBuilder = inject(NonNullableFormBuilder);
-  private readonly authService = inject(AuthService);
   private readonly adminManagementService = inject(AdminManagementService);
   private readonly authSession = inject(AuthSessionService);
   private readonly toastr = inject(ToastrService);
+  private readonly router = inject(Router);
 
   private readonly jalaliFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     year: 'numeric',
@@ -96,11 +95,6 @@ export class DashboardComponent implements OnInit {
   private readonly jalaliMonthFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     year: 'numeric',
     month: 'long'
-  });
-
-  readonly profileForm = this.formBuilder.group({
-    nationalCode: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-    address: ['', [Validators.required, Validators.maxLength(500)]]
   });
 
   readonly userForm = this.formBuilder.group({
@@ -124,9 +118,9 @@ export class DashboardComponent implements OnInit {
     { key: 'reports', label: 'گزارش‌ها', icon: 'monitoring' }
   ];
 
+
   private readonly consultantSidebarItems: SidebarItem[] = [
-    { key: 'appointments', label: 'نوبت‌ها', icon: 'calendar_month' },
-    { key: 'reports', label: 'گزارش مشاوره', icon: 'monitoring' }
+    { key: 'consultant-dashboard', label: 'داشبورد مشاور', icon: 'dashboard', componentName: 'app-consultant-dashboard' }
   ];
 
   readonly stats: DashboardStat[] = [
@@ -143,11 +137,10 @@ export class DashboardComponent implements OnInit {
   constructor() {
     const session = this.authSession.getSession();
     this.role = session?.role ?? 'unknown';
-    this.isCompleteProfile = session?.isCompleteProfile ?? true;
     const today = this.getJalaliParts(new Date());
     this.currentJalaliYear = today.year;
     this.currentJalaliMonth = today.month;
-    this.activeKey = this.role === 'consultant' ? 'appointments' : 'overview';
+    this.activeKey = this.role === 'consultant' ? 'consultant-dashboard' : 'overview';
     this.buildCalendar();
   }
 
@@ -159,15 +152,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get sidebarItems(): SidebarItem[] {
-    if (this.requiresConsultantProfile) {
-      return [];
-    }
-
     return this.role === 'consultant' ? this.consultantSidebarItems : this.adminSidebarItems;
-  }
-
-  get requiresConsultantProfile(): boolean {
-    return this.role === 'consultant' && !this.isCompleteProfile;
   }
 
   get activeTitle(): string {
@@ -175,15 +160,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get activeSubtitle(): string {
-    if (this.requiresConsultantProfile) {
-      return 'برای فعال شدن داشبورد، کد ملی و آدرس پروفایل مشاور را تکمیل کنید.';
-    }
-
-    if (this.role === 'consultant') {
-      return 'دسترسی شما محدود به امکانات مشاور است.';
-    }
-
-    return '';
+    return this.role === 'consultant' ? 'دسترسی شما محدود به امکانات مشاور است.' : '';
   }
 
   get roleLabel(): string {
@@ -219,7 +196,7 @@ export class DashboardComponent implements OnInit {
   }
 
   setActive(item: SidebarItem): void {
-    if (this.requiresConsultantProfile || !this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
+    if (!this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
       return;
     }
 
@@ -227,31 +204,9 @@ export class DashboardComponent implements OnInit {
     this.closeSidebar();
   }
 
-  submitConsultantProfile(): void {
-    if (this.profileForm.invalid || this.isProfileSubmitting) {
-      this.profileForm.markAllAsTouched();
-      return;
-    }
-
-    this.isProfileSubmitting = true;
-    const value = this.profileForm.getRawValue();
-
-    this.authService
-      .completeConsultantProfile({
-        nationalCode: value.nationalCode.trim(),
-        address: value.address.trim()
-      })
-      .pipe(finalize(() => (this.isProfileSubmitting = false)))
-      .subscribe((result) => {
-        if (!result.isSuccess) {
-          this.toastr.error(result.message);
-          return;
-        }
-
-        this.authSession.markProfileCompleted();
-        this.isCompleteProfile = true;
-        this.toastr.success(result.message);
-      });
+  logout(): void {
+    this.authSession.clear();
+    this.router.navigate(['/login']);
   }
 
   openUserDialog(mode: DialogMode, user?: UserRow): void {

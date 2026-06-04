@@ -47,6 +47,8 @@ export class AuthSessionService {
 
     return {
       token,
+      userId: this.getUserId(claims),
+      profileId: this.getProfileId(claims),
       role: this.getRole(claims),
       isCompleteProfile: hasCompletedProfileOverride || this.getIsCompleteProfile(claims)
     };
@@ -71,6 +73,32 @@ export class AuthSessionService {
     } catch {
       return {};
     }
+  }
+
+  private getUserId(claims: Record<string, unknown>): string {
+    const value = this.findClaim(claims, [
+      'userId',
+      'UserId',
+      'id',
+      'Id',
+      'sub',
+      'nameid',
+      'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+    ]);
+
+    return `${value ?? ''}`;
+  }
+
+  private getProfileId(claims: Record<string, unknown>): number {
+    const value = this.findClaim(claims, [
+      'profileId',
+      'ProfileId',
+      'consultantProfileId',
+      'ConsultantProfileId'
+    ]);
+    const numericValue = Number(value);
+
+    return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : 1;
   }
 
   private getRole(claims: Record<string, unknown>): UserRole {
