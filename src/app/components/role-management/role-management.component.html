@@ -33,10 +33,8 @@
     aria-label="جدول نقش‌ها"
   >
     <div class="table-row table-head" role="row">
-      <span role="columnheader">نقش</span>
-      <span role="columnheader">اعضا</span>
-      <span role="columnheader">محدوده دسترسی</span>
-      <span role="columnheader">سطح مجوز</span>
+      <span role="columnheader">شناسه</span>
+      <span role="columnheader">نام نقش</span>
       <span role="columnheader">عملیات</span>
     </div>
     <div
@@ -44,12 +42,8 @@
       role="row"
       *ngFor="let roleItem of rolePage.items; trackBy: trackById"
     >
-      <span role="cell">{{ roleItem.title }}</span>
-      <span role="cell">{{ roleItem.members }}</span>
-      <span role="cell">{{ roleItem.scope }}</span>
-      <span role="cell"
-        ><mark>{{ roleItem.access }}</mark></span
-      >
+      <span role="cell">{{ roleItem.id }}</span>
+      <span role="cell">{{ roleItem.roleName }}</span>
       <span role="cell" class="row-actions">
         <button type="button" (click)="openRoleDialog('edit', roleItem)">
           ویرایش
@@ -98,22 +92,6 @@
       </button>
     </div>
   </div>
-
-  <div class="permission-matrix">
-    <h3>ماتریس دسترسی سریع</h3>
-    <div class="permission-row">
-      <span>مشاهده پرونده بیمار</span>
-      <b>مدیر، پزشک، پذیرش</b>
-    </div>
-    <div class="permission-row">
-      <span>ویرایش پرداخت‌ها</span>
-      <b>مدیر، مالی</b>
-    </div>
-    <div class="permission-row">
-      <span>گزارش‌های مدیریتی</span>
-      <b>فقط مدیر سیستم</b>
-    </div>
-  </div>
 </section>
 
 <div
@@ -142,12 +120,7 @@
       (ngSubmit)="submitRoleDialog()"
       class="dialog-form"
     >
-      <label>عنوان نقش<input type="text" formControlName="title" /></label>
-      <label>اعضا<input type="text" formControlName="members" /></label>
-      <label
-        >محدوده دسترسی<textarea rows="3" formControlName="scope"></textarea>
-      </label>
-      <label>سطح مجوز<input type="text" formControlName="access" /></label>
+      <label>نام نقش<input type="text" formControlName="roleName" /></label>
       <div class="dialog-actions">
         <button type="button" class="ghost-button" (click)="closeDialog()">
           انصراف
@@ -165,8 +138,7 @@
     <div class="delete-confirm" *ngIf="dialogMode === 'delete'">
       <span class="material-symbols-outlined" aria-hidden="true">warning</span>
       <p>
-        آیا از حذف نقش «{{ selectedRole?.title }}» مطمئن هستید؟ این عملیات فقط
-        از همین دیالوگ تایید می‌شود.
+        آیا از حذف نقش «{{ selectedRole?.roleName }}» مطمئن هستید؟ این عملیات در بک‌اند ثبت می‌شود.
       </p>
       <div class="dialog-actions">
         <button type="button" class="ghost-button" (click)="closeDialog()">

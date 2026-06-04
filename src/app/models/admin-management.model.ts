@@ -22,13 +22,7 @@ export interface AdminUser {
 export interface AdminRole {
   id?: number | string | null;
   roleId?: number | string | null;
-  title?: string | null;
-  name?: string | null;
   roleName?: string | null;
-  members?: string | number | null;
-  membersCount?: string | number | null;
-  scope?: string | null;
-  access?: string | null;
 }
 
 export interface CreateUserCommandPayload {
@@ -62,12 +56,5 @@ export type UserCommandPayload = CreateUserCommandPayload | UpdateUserCommandPay
 
 export interface RoleCommandPayload {
   id?: number | string;
-  roleId?: number | string;
-  title: string;
-  name: string;
   roleName: string;
-  members: string;
-  membersCount: string;
-  scope: string;
-  access: string;
 }

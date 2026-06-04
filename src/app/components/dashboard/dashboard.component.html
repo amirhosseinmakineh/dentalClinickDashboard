@@ -118,7 +118,6 @@
 
         <app-role-management
           *ngSwitchCase="'roles'"
-          [users]="users"
           (rolesChanged)="updateRoleOptions($event)"
         />
 
@@ -163,7 +162,7 @@
       <label>نقش
         <select formControlName="roleName">
           <option value="" disabled>انتخاب نقش</option>
-          <option *ngFor="let roleItem of roles; trackBy: trackById" [value]="roleItem.title">{{ roleItem.title }}</option>
+          <option *ngFor="let roleItem of roles; trackBy: trackById" [value]="roleItem.roleName">{{ roleItem.roleName }}</option>
         </select>
       </label>
       <label>جنسیت

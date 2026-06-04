@@ -4,7 +4,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
-import { AdminUser, CreateUserCommandPayload, DeleteUserCommandPayload, UpdateUserCommandPayload } from '../../models/admin-management.model';
+import { AdminRole, AdminUser, CreateUserCommandPayload, DeleteUserCommandPayload, UpdateUserCommandPayload } from '../../models/admin-management.model';
 import { UserRole } from '../../models/auth.model';
 import { Gender } from '../../models/register-command.model';
 import { createPaginatedResult, PaginatedResult } from '../../models/paginated-result.model';
@@ -138,13 +138,7 @@ export class DashboardComponent implements OnInit {
 
   users: UserRow[] = [];
 
-  roles: RoleRow[] = [
-    { id: 1, title: 'Admin', members: '۲ کاربر', scope: 'مدیریت کاربران، نقش‌ها و مشاوران', access: 'کامل' },
-    { id: 2, title: 'Consultant', members: '۹ مشاور', scope: 'داشبورد مشاور و لیدهای اختصاص‌یافته', access: 'عملیاتی' },
-    { id: 3, title: 'پذیرش', members: '۵ کاربر', scope: 'نوبت‌دهی و بیماران', access: 'محدود' },
-    { id: 4, title: 'مالی', members: '۳ کاربر', scope: 'پرداخت و فاکتور', access: 'محدود' },
-    { id: 5, title: 'بیمار', members: '۲۴۸۰ کاربر', scope: 'داشبورد بیمار، نوبت‌ها و پرداخت‌ها', access: 'شخصی‌سازی‌شده' }
-  ];
+  roles: RoleRow[] = [];
 
   constructor() {
     const session = this.authSession.getSession();
@@ -159,6 +153,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.role !== 'consultant') {
+      this.loadRoles();
       this.loadUsers();
     }
   }
@@ -271,7 +266,7 @@ export class DashboardComponent implements OnInit {
         lastName: '',
         phoneNumber: '',
         passwordHash: '',
-        roleName: this.roles[0]?.title ?? '',
+        roleName: this.roles[0]?.roleName ?? '',
         isActive: false,
         isCompleteProfile: false,
         avatarImageName: '',
@@ -590,6 +585,25 @@ export class DashboardComponent implements OnInit {
 
   updateRoleOptions(roles: RoleRow[]): void {
     this.roles = roles;
+  }
+
+  private loadRoles(): void {
+    this.adminManagementService.getRoles().subscribe((result) => {
+      if (!result.isSuccess) {
+        this.toastr.error(result.message || 'امکان دریافت نقش‌ها از API پورت ۵۱۸۲ وجود ندارد.');
+        this.roles = [];
+        return;
+      }
+
+      this.roles = (result.data ?? []).map((role, index) => this.toRoleRow(role, index));
+    });
+  }
+
+  private toRoleRow(role: AdminRole, index: number): RoleRow {
+    return {
+      id: role.id ?? role.roleId ?? index + 1,
+      roleName: role.roleName?.trim() || 'نقش بدون نام'
+    };
   }
 
   private getNamePart(fullName: string | null | undefined, part: 'first' | 'last'): string {
