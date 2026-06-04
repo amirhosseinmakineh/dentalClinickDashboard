@@ -1,6 +1,5 @@
-<div class="dashboard-shell" dir="rtl" [class.is-sidebar-closed]="!isSidebarOpen" [class.is-profile-blocked]="requiresConsultantProfile">
+<div class="dashboard-shell" dir="rtl" [class.is-sidebar-closed]="!isSidebarOpen">
   <app-sidebar
-    *ngIf="!requiresConsultantProfile"
     [items]="sidebarItems"
     [isOpen]="isSidebarOpen"
     [activeKey]="activeKey"
@@ -14,54 +13,25 @@
   <main class="dashboard-main">
     <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" (logout)="logout()" />
 
-    <app-consultant-profile-completion
-      *ngIf="requiresConsultantProfile; else dashboardContent"
-      [profileForm]="profileForm"
-      [isSubmitting]="isProfileSubmitting"
-      (profileSubmit)="submitConsultantProfile()"
-    />
+    <section class="content-canvas" aria-label="فضای محتوای اصلی">
+      <div>
+        <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
+        <h2>داشبورد ادمین</h2>
+      </div>
+    </section>
 
-    <ng-template #dashboardContent>
-      <section class="content-canvas" aria-label="فضای محتوای اصلی">
+    <section class="stats-grid" aria-label="شاخص‌های کلیدی کلینیک">
+      <article class="stat-card" *ngFor="let stat of stats; trackBy: trackByLabel">
+        <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
         <div>
-          <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
-          <h2>{{ role === 'consultant' ? 'داشبورد مشاور' : 'داشبورد ادمین' }}</h2>
+          <p>{{ stat.label }}</p>
+          <strong>{{ stat.value }}</strong>
+          <small>{{ stat.trend }}</small>
         </div>
-      </section>
+      </article>
+    </section>
 
-      <section *ngIf="role === 'consultant' && activeKey === 'overview'" class="consultant-status-panel" aria-label="وضعیت سریع مشاور">
-        <article class="status-card">
-          <p class="eyebrow">Consultant Status</p>
-          <h2>وضعیت امروز مشاور</h2>
-          <p>این بخش فقط برای نقش مشاور نمایش داده می‌شود و کنترل‌ها فعلاً فقط ظاهر رابط کاربری هستند.</p>
-        </article>
-
-        <div class="status-actions" aria-label="کنترل‌های حضور و آنلاین بودن">
-          <label class="status-check">
-            <input type="checkbox" />
-            <span class="status-check__box" aria-hidden="true"></span>
-            <span>تیک حضور</span>
-          </label>
-          <label class="status-check">
-            <input type="checkbox" />
-            <span class="status-check__box" aria-hidden="true"></span>
-            <span>آنلاین / آفلاین</span>
-          </label>
-        </div>
-      </section>
-
-      <section class="stats-grid" aria-label="شاخص‌های کلیدی کلینیک">
-        <article class="stat-card" *ngFor="let stat of stats; trackBy: trackByLabel">
-          <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
-          <div>
-            <p>{{ stat.label }}</p>
-            <strong>{{ stat.value }}</strong>
-            <small>{{ stat.trend }}</small>
-          </div>
-        </article>
-      </section>
-
-      <ng-container [ngSwitch]="activeKey">
+    <ng-container [ngSwitch]="activeKey">
         <section *ngSwitchCase="'users'" class="management-panel" aria-labelledby="users-title">
           <div class="panel-heading">
             <div>
@@ -129,11 +99,11 @@
           (rolesChanged)="updateRoleOptions($event)"
         />
 
-        <section *ngSwitchCase="'overview'" class="management-panel" aria-labelledby="overview-title">
+      <section *ngSwitchCase="'overview'" class="management-panel" aria-labelledby="overview-title">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">{{ role === 'consultant' ? 'Consultant Access' : 'Clinic Overview' }}</p>
-              <h2 id="overview-title">{{ role === 'consultant' ? 'امکانات مشاور' : 'نمای کلی داشبورد' }}</h2>
+              <p class="eyebrow">Clinic Overview</p>
+              <h2 id="overview-title">نمای کلی داشبورد</h2>
             </div>
           </div>
 
@@ -149,9 +119,8 @@
               <p>نرخ تکمیل درمان‌ها و رضایت بیماران در حال رشد است.</p>
             </article>
           </div>
-        </section>
-      </ng-container>
-    </ng-template>
+      </section>
+    </ng-container>
   </main>
 </div>
 

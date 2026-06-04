@@ -10,7 +10,6 @@ import { UserRole } from '../../models/auth.model';
 import { Gender } from '../../models/register-command.model';
 import { createPaginatedResult, PaginatedResult } from '../../models/paginated-result.model';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { AuthService } from '../../services/auth.service';
 import { AdminManagementService } from '../../services/admin-management.service';
 import { ConsultantProfileCompletionComponent } from '../consultant-profile-completion/consultant-profile-completion.component';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
@@ -59,12 +58,10 @@ interface JalaliDay {
 export class DashboardComponent implements OnInit {
   isSidebarOpen = true;
   activeKey = 'overview';
-  isProfileSubmitting = false;
   isDialogSubmitting = false;
   isUsersLoading = false;
   userLoadError = '';
   role: UserRole = 'unknown';
-  isCompleteProfile = true;
 
   userPageNumber = 1;
   readonly pageSizeOptions = [3, 5, 10];
@@ -84,7 +81,6 @@ export class DashboardComponent implements OnInit {
   selectedUser: UserRow | null = null;
 
   private readonly formBuilder = inject(NonNullableFormBuilder);
-  private readonly authService = inject(AuthService);
   private readonly adminManagementService = inject(AdminManagementService);
   private readonly authSession = inject(AuthSessionService);
   private readonly toastr = inject(ToastrService);
@@ -99,11 +95,6 @@ export class DashboardComponent implements OnInit {
   private readonly jalaliMonthFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
     year: 'numeric',
     month: 'long'
-  });
-
-  readonly profileForm = this.formBuilder.group({
-    nationalCode: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-    address: ['', [Validators.required, Validators.maxLength(500)]]
   });
 
   readonly userForm = this.formBuilder.group({
@@ -127,12 +118,6 @@ export class DashboardComponent implements OnInit {
     { key: 'reports', label: 'گزارش‌ها', icon: 'monitoring' }
   ];
 
-  private readonly consultantSidebarItems: SidebarItem[] = [
-    { key: 'overview', label: 'نمای اولیه', icon: 'dashboard' },
-    { key: 'appointments', label: 'نوبت‌ها', icon: 'calendar_month' },
-    { key: 'reports', label: 'گزارش مشاوره', icon: 'monitoring' }
-  ];
-
   readonly stats: DashboardStat[] = [
     { label: 'بیماران فعال', value: '۲,۴۸۰', trend: '+۱۲٪ نسبت به ماه قبل', icon: 'groups' },
     { label: 'نوبت‌های امروز', value: '۳۶', trend: '۸ نوبت در انتظار تایید', icon: 'event_available' },
@@ -147,7 +132,6 @@ export class DashboardComponent implements OnInit {
   constructor() {
     const session = this.authSession.getSession();
     this.role = session?.role ?? 'unknown';
-    this.isCompleteProfile = session?.isCompleteProfile ?? true;
     const today = this.getJalaliParts(new Date());
     this.currentJalaliYear = today.year;
     this.currentJalaliMonth = today.month;
@@ -156,22 +140,12 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.role !== 'consultant') {
-      this.loadRoles();
-      this.loadUsers();
-    }
+    this.loadRoles();
+    this.loadUsers();
   }
 
   get sidebarItems(): SidebarItem[] {
-    if (this.requiresConsultantProfile) {
-      return [];
-    }
-
-    return this.role === 'consultant' ? this.consultantSidebarItems : this.adminSidebarItems;
-  }
-
-  get requiresConsultantProfile(): boolean {
-    return this.role === 'consultant' && !this.isCompleteProfile;
+    return this.adminSidebarItems;
   }
 
   get activeTitle(): string {
@@ -179,24 +153,12 @@ export class DashboardComponent implements OnInit {
   }
 
   get activeSubtitle(): string {
-    if (this.requiresConsultantProfile) {
-      return 'برای فعال شدن داشبورد، کد ملی و آدرس پروفایل مشاور را تکمیل کنید.';
-    }
-
-    if (this.role === 'consultant') {
-      return 'دسترسی شما محدود به امکانات مشاور است.';
-    }
-
     return '';
   }
 
   get roleLabel(): string {
     if (this.role === 'admin') {
       return 'ادمین';
-    }
-
-    if (this.role === 'consultant') {
-      return 'مشاور';
     }
 
     return 'کاربر';
@@ -223,7 +185,7 @@ export class DashboardComponent implements OnInit {
   }
 
   setActive(item: SidebarItem): void {
-    if (this.requiresConsultantProfile || !this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
+    if (!this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
       return;
     }
 
@@ -234,33 +196,6 @@ export class DashboardComponent implements OnInit {
   logout(): void {
     this.authSession.clear();
     this.router.navigate(['/login']);
-  }
-
-  submitConsultantProfile(): void {
-    if (this.profileForm.invalid || this.isProfileSubmitting) {
-      this.profileForm.markAllAsTouched();
-      return;
-    }
-
-    this.isProfileSubmitting = true;
-    const value = this.profileForm.getRawValue();
-
-    this.authService
-      .completeConsultantProfile({
-        nationalCode: value.nationalCode.trim(),
-        address: value.address.trim()
-      })
-      .pipe(finalize(() => (this.isProfileSubmitting = false)))
-      .subscribe((result) => {
-        if (!result.isSuccess) {
-          this.toastr.error(result.message);
-          return;
-        }
-
-        this.authSession.markProfileCompleted();
-        this.isCompleteProfile = true;
-        this.toastr.success(result.message);
-      });
   }
 
   openUserDialog(mode: DialogMode, user?: UserRow): void {

@@ -1,9 +1,11 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
 
 import { ApiResult } from '../models/api-result.model';
+import { CompleteConsultantProfileCommand } from '../models/auth.model';
 import { ConsultantProfile } from '../models/consultant-dashboard.model';
+import { AuthSessionService } from './auth-session.service';
 
 type ApiResultResponse<T> = ApiResult<T> & {
   IsSuccess?: boolean;
@@ -14,6 +16,7 @@ type ApiResultResponse<T> = ApiResult<T> & {
 @Injectable({ providedIn: 'root' })
 export class ConsultantProfileService {
   private readonly apiBaseUrl = 'http://localhost:5001/api';
+  private readonly dentalApiBaseUrl = 'http://localhost:5182/api';
   private readonly profileSubject = new BehaviorSubject<ConsultantProfile>({
     id: 'current-consultant',
     fullName: 'مشاور دل‌خند',
@@ -26,7 +29,19 @@ export class ConsultantProfileService {
 
   readonly profile$ = this.profileSubject.asObservable();
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly authSession: AuthSessionService
+  ) {}
+
+  completeProfile(command: CompleteConsultantProfileCommand): Observable<ApiResult<object>> {
+    return this.http.post<ApiResultResponse<object>>(`${this.dentalApiBaseUrl}/Consultant`, command, {
+      headers: this.getAuthorizationHeaders()
+    }).pipe(
+      map((response) => this.normalizeResult(response)),
+      catchError((error: HttpErrorResponse) => of(this.toFailureResult<object>(error)))
+    );
+  }
 
   setPresentStatus(isPresent: boolean): Observable<ApiResult<ConsultantProfile>> {
     return this.http
@@ -78,6 +93,33 @@ export class ConsultantProfileService {
       message: error.status === 0 ? 'وضعیت آنلاین به صورت محلی به‌روزرسانی شد.' : 'وضعیت آنلاین به‌روزرسانی شد.',
       data
     });
+  }
+
+  private getAuthorizationHeaders(): HttpHeaders {
+    const token = this.authSession.getToken();
+    return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
+  }
+
+  private toFailureResult<T>(error: HttpErrorResponse): ApiResult<T> {
+    const body = error.error as Partial<ApiResultResponse<T>> | string | null;
+
+    if (body && typeof body === 'object' && ('message' in body || 'Message' in body)) {
+      return this.normalizeResult(body as ApiResultResponse<T>);
+    }
+
+    if (typeof body === 'string' && body.trim()) {
+      return {
+        isSuccess: false,
+        message: body,
+        data: null
+      };
+    }
+
+    return {
+      isSuccess: false,
+      message: error.message,
+      data: null
+    };
   }
 
   private normalizeResult<T>(response: ApiResultResponse<T>): ApiResult<T> {

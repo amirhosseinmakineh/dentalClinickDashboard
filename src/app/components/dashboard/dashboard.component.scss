@@ -35,7 +35,6 @@
 }
 
 .admin-access-banner,
-.consultant-status-panel,
 .queue-warning,
 .management-panel,
 .stat-card {
@@ -62,88 +61,6 @@
 .admin-access-banner p,
 .queue-warning p {
   margin: 0;
-}
-
-.consultant-status-panel {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 1rem;
-  padding: 1.1rem;
-}
-
-.status-card,
-.status-actions {
-  border-radius: 1.1rem;
-  background: linear-gradient(135deg, #fff, rgba(246, 234, 223, 0.72));
-  padding: 1rem;
-}
-
-.status-card h2,
-.panel-heading h2,
-.lead-card h3,
-.notification-card h3,
-.profile-grid strong {
-  margin: 0;
-  color: var(--dashboard-text);
-  font-weight: 950;
-}
-
-.status-card p {
-  margin: 0;
-  color: var(--dashboard-muted);
-  line-height: 1.8;
-}
-
-.status-check {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  min-height: 3rem;
-  border: 1px solid rgba(119, 88, 58, 0.12);
-  border-radius: 1rem;
-  padding: 0.65rem 0.8rem;
-  background: #fff;
-  color: var(--dashboard-primary-dark);
-  cursor: pointer;
-  font-weight: 900;
-}
-
-.status-check input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.status-check__box {
-  width: 1.35rem;
-  height: 1.35rem;
-  display: grid;
-  place-items: center;
-  border: 2px solid var(--dashboard-border);
-  border-radius: 0.45rem;
-  background: #fff;
-  color: #fff;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.status-check__box::after {
-  content: '✓';
-  font-size: 1rem;
-  font-weight: 950;
-  opacity: 0;
-  transform: scale(0.7);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.status-check input:checked + .status-check__box {
-  border-color: var(--success);
-  background: var(--success);
-}
-
-.status-check input:checked + .status-check__box::after {
-  opacity: 1;
-  transform: scale(1);
 }
 
 .eyebrow {
@@ -498,7 +415,6 @@
 }
 
 @media (max-width: 1100px) {
-  .consultant-status-panel,
   .stats-grid,
   .lead-grid,
   .role-grid,
@@ -534,7 +450,6 @@
     padding: 1rem;
   }
 
-  .consultant-status-panel,
   .stats-grid,
   .lead-grid,
   .role-grid,
@@ -563,9 +478,6 @@
   }
 }
 
-.is-profile-blocked {
-  display: block;
-}
 
 .primary-button:disabled {
   cursor: not-allowed;
