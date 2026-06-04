@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 
-import { AdminRole, AdminUser, RoleCommandPayload, UserCommandPayload } from '../models/admin-management.model';
+import { AdminRole, AdminUser, CreateUserCommandPayload, DeleteUserCommandPayload, RoleCommandPayload, UpdateUserCommandPayload } from '../models/admin-management.model';
 import { ApiResult } from '../models/api-result.model';
 import { AuthSessionService } from './auth-session.service';
 
@@ -37,7 +37,7 @@ export class AdminManagementService {
     );
   }
 
-  createUser(command: UserCommandPayload): Observable<ApiResult<object>> {
+  createUser(command: CreateUserCommandPayload): Observable<ApiResult<object>> {
     return this.http.post<ApiResultResponse<object>>(`${this.apiBaseUrl}/User`, command, {
       headers: this.getAuthorizationHeaders()
     }).pipe(
@@ -46,7 +46,7 @@ export class AdminManagementService {
     );
   }
 
-  updateUser(command: UserCommandPayload): Observable<ApiResult<object>> {
+  updateUser(command: UpdateUserCommandPayload): Observable<ApiResult<object>> {
     return this.http.patch<ApiResultResponse<object>>(`${this.apiBaseUrl}/User`, command, {
       headers: this.getAuthorizationHeaders()
     }).pipe(
@@ -55,7 +55,7 @@ export class AdminManagementService {
     );
   }
 
-  deleteUser(command: UserCommandPayload): Observable<ApiResult<object>> {
+  deleteUser(command: DeleteUserCommandPayload): Observable<ApiResult<object>> {
     return this.http.request<ApiResultResponse<object>>('DELETE', `${this.apiBaseUrl}/User`, {
       body: command,
       headers: this.getAuthorizationHeaders()
