@@ -116,72 +116,11 @@
           </div>
         </section>
 
-        <section *ngSwitchCase="'roles'" class="management-panel" aria-labelledby="roles-title">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Role Management</p>
-              <h2 id="roles-title">مدیریت نقش ها</h2>
-            </div>
-            <div class="panel-actions">
-              <button type="button" class="ghost-button" (click)="exportRoles('excel')">خروجی اکسل</button>
-              <button type="button" class="ghost-button" (click)="exportRoles('pdf')">خروجی PDF</button>
-              <button type="button" class="primary-button" [disabled]="isRolesLoading" (click)="openRoleDialog('create')">ایجاد نقش</button>
-            </div>
-          </div>
-
-          <p class="status-message" *ngIf="isRolesLoading">در حال دریافت نقش‌ها از API پورت ۵۱۸۲...</p>
-          <p class="status-message" *ngIf="roleLoadError">{{ roleLoadError }}</p>
-
-          <div class="data-table data-table--roles" role="table" aria-label="جدول نقش‌ها">
-            <div class="table-row table-head" role="row">
-              <span role="columnheader">نقش</span>
-              <span role="columnheader">اعضا</span>
-              <span role="columnheader">محدوده دسترسی</span>
-              <span role="columnheader">سطح مجوز</span>
-              <span role="columnheader">عملیات</span>
-            </div>
-            <div class="table-row" role="row" *ngFor="let roleItem of rolePage.items; trackBy: trackById">
-              <span role="cell">{{ roleItem.title }}</span>
-              <span role="cell">{{ roleItem.members }}</span>
-              <span role="cell">{{ roleItem.scope }}</span>
-              <span role="cell"><mark>{{ roleItem.access }}</mark></span>
-              <span role="cell" class="row-actions">
-                <button type="button" (click)="openRoleDialog('edit', roleItem)">ویرایش</button>
-                <button type="button" class="danger-link" (click)="openRoleDialog('delete', roleItem)">حذف</button>
-              </span>
-            </div>
-          </div>
-
-          <div class="pagination-bar" aria-label="صفحه‌بندی نقش‌ها">
-            <span>نمایش {{ rolePage.items.length }} از {{ rolePage.totalCount }} نقش - صفحه {{ rolePage.pageNumber }} از {{ rolePage.totalPages }}</span>
-            <label>
-              تعداد در صفحه
-              <select [value]="rolePageSize" (change)="changeRolePageSize($event)">
-                <option *ngFor="let size of pageSizeOptions; trackBy: trackByValue" [value]="size">{{ size }}</option>
-              </select>
-            </label>
-            <div>
-              <button type="button" [disabled]="!rolePage.hasPrevious" (click)="changeRolePage(rolePage.pageNumber - 1)">قبلی</button>
-              <button type="button" [disabled]="!rolePage.hasNext" (click)="changeRolePage(rolePage.pageNumber + 1)">بعدی</button>
-            </div>
-          </div>
-
-          <div class="permission-matrix">
-            <h3>ماتریس دسترسی سریع</h3>
-            <div class="permission-row">
-              <span>مشاهده پرونده بیمار</span>
-              <b>مدیر، پزشک، پذیرش</b>
-            </div>
-            <div class="permission-row">
-              <span>ویرایش پرداخت‌ها</span>
-              <b>مدیر، مالی</b>
-            </div>
-            <div class="permission-row">
-              <span>گزارش‌های مدیریتی</span>
-              <b>فقط مدیر سیستم</b>
-            </div>
-          </div>
-        </section>
+        <app-role-management
+          *ngSwitchCase="'roles'"
+          [users]="users"
+          (rolesChanged)="updateRoleOptions($event)"
+        />
 
         <section *ngSwitchCase="'overview'" class="management-panel" aria-labelledby="overview-title">
           <div class="panel-heading">
@@ -298,21 +237,9 @@
       </div>
     </form>
 
-    <form *ngIf="dialogEntity === 'role' && dialogMode !== 'delete'" [formGroup]="roleForm" (ngSubmit)="submitDialog()" class="dialog-form">
-      <label>عنوان نقش<input type="text" formControlName="title" /></label>
-      <label>اعضا<input type="text" formControlName="members" /></label>
-      <label>محدوده دسترسی<textarea rows="3" formControlName="scope"></textarea></label>
-      <label>سطح مجوز<input type="text" formControlName="access" /></label>
-      <div class="dialog-actions">
-        <button type="button" class="ghost-button" (click)="closeDialog()">انصراف</button>
-        <button type="submit" class="primary-button" [disabled]="roleForm.invalid || isDialogSubmitting">{{ isDialogSubmitting ? 'در حال ثبت...' : 'ثبت' }}</button>
-      </div>
-    </form>
-
     <div class="delete-confirm" *ngIf="dialogMode === 'delete'">
       <span class="material-symbols-outlined" aria-hidden="true">warning</span>
       <p *ngIf="dialogEntity === 'user'">آیا از حذف کاربر «{{ selectedUser?.name }}» مطمئن هستید؟ این عملیات فقط از همین دیالوگ تایید می‌شود.</p>
-      <p *ngIf="dialogEntity === 'role'">آیا از حذف نقش «{{ selectedRole?.title }}» مطمئن هستید؟ این عملیات فقط از همین دیالوگ تایید می‌شود.</p>
       <div class="dialog-actions">
         <button type="button" class="ghost-button" (click)="closeDialog()">انصراف</button>
         <button type="button" class="danger-button" [disabled]="isDialogSubmitting" (click)="submitDialog()">{{ isDialogSubmitting ? 'در حال حذف...' : 'حذف قطعی' }}</button>
