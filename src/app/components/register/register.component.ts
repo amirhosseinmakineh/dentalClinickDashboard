@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, HostListener } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ToastrService } from 'ngx-toastr';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
+
 import { Gender, RegisterCommand } from '../../models/register-command.model';
 import { AuthService } from '../../services/auth.service';
 
@@ -17,19 +18,13 @@ interface JalaliDay {
 
 @Component({
   selector: 'app-register',
-  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
-  private readonly formBuilder = inject(NonNullableFormBuilder);
-  private readonly authService = inject(AuthService);
-  private readonly toastr = inject(ToastrService);
-
   readonly Gender = Gender;
   readonly weekDays = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
-
   readonly genderOptions = [
     { label: 'آقا', value: Gender.Male },
     { label: 'خانم', value: Gender.Female }
@@ -68,7 +63,11 @@ export class RegisterComponent {
     month: 'long'
   });
 
-  constructor() {
+  constructor(
+    private readonly formBuilder: NonNullableFormBuilder,
+    private readonly authService: AuthService,
+    private readonly toastr: ToastrService
+  ) {
     const today = this.getJalaliParts(new Date());
     this.currentJalaliYear = today.year;
     this.currentJalaliMonth = today.month;
@@ -82,14 +81,12 @@ export class RegisterComponent {
     }
 
     this.isSubmitting = true;
-
     this.authService
       .register(this.createRegisterCommand())
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe((result) => {
         if (result.isSuccess) {
           this.toastr.success(result.message);
-
           this.registerForm.reset({
             firstName: '',
             lastName: '',
@@ -100,7 +97,6 @@ export class RegisterComponent {
             gender: Gender.Male,
             birthDate: ''
           });
-
           this.selectedJalaliDate = '';
           this.selectedAvatarName = '';
           this.selectedAvatarPreview = '';
@@ -152,11 +148,9 @@ export class RegisterComponent {
 
     this.registerForm.controls.birthDate.setValue(day.isoDate);
     this.registerForm.controls.birthDate.markAsTouched();
-
     this.selectedJalaliDate = `${this.toPersianNumber(this.currentJalaliYear)}/${this.toPersianNumber(
       this.currentJalaliMonth.toString().padStart(2, '0')
     )}/${this.toPersianNumber(day.day.toString().padStart(2, '0'))}`;
-
     this.isDatepickerOpen = false;
     this.buildCalendar();
   }
@@ -203,16 +197,11 @@ export class RegisterComponent {
   }
 
   private buildCalendar(): void {
-    const monthDates = this.getGregorianDatesOfJalaliMonth(
-      this.currentJalaliYear,
-      this.currentJalaliMonth
-    );
-
+    const monthDates = this.getGregorianDatesOfJalaliMonth(this.currentJalaliYear, this.currentJalaliMonth);
     const firstDate = monthDates[0];
     const leadingEmptyDays = firstDate ? (firstDate.getDay() + 1) % 7 : 0;
     const todayIso = this.toIsoDate(new Date());
     const selectedIso = this.registerForm.controls.birthDate.value;
-
     this.currentMonthTitle = firstDate
       ? this.jalaliMonthFormatter.format(firstDate)
       : `${this.currentJalaliYear}/${this.currentJalaliMonth}`;
@@ -239,17 +228,8 @@ export class RegisterComponent {
     const start = new Date(Date.UTC(year + 620, 0, 1));
     const end = new Date(Date.UTC(year + 622, 11, 31));
 
-    for (
-      let cursor = new Date(start);
-      cursor <= end;
-      cursor.setUTCDate(cursor.getUTCDate() + 1)
-    ) {
-      const localDate = new Date(
-        cursor.getUTCFullYear(),
-        cursor.getUTCMonth(),
-        cursor.getUTCDate()
-      );
-
+    for (let cursor = new Date(start); cursor <= end; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
+      const localDate = new Date(cursor.getUTCFullYear(), cursor.getUTCMonth(), cursor.getUTCDate());
       const parts = this.getJalaliParts(localDate);
 
       if (parts.year === year && parts.month === month) {
@@ -262,9 +242,7 @@ export class RegisterComponent {
 
   private getJalaliParts(date: Date): { year: number; month: number; day: number } {
     const parts = this.jalaliFormatter.formatToParts(date);
-
-    const getPart = (type: string) =>
-      Number(this.toEnglishNumber(parts.find((part) => part.type === type)?.value ?? '0'));
+    const getPart = (type: string) => Number(this.toEnglishNumber(parts.find((part) => part.type === type)?.value ?? '0'));
 
     return {
       year: getPart('year'),
