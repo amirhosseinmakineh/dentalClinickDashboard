@@ -37,9 +37,7 @@
             <label for="register-gender">جنسیت</label>
             <div class="input-wrap input-wrap--select">
               <select id="register-gender" formControlName="gender">
-                @for (option of genderOptions; track option.value) {
-                  <option [ngValue]="option.value">{{ option.label }}</option>
-                }
+                <option *ngFor="let option of genderOptions; trackBy: trackByGenderValue" [ngValue]="option.value">{{ option.label }}</option>
               </select>
               <span class="material-symbols-outlined" aria-hidden="true">wc</span>
             </div>
@@ -65,8 +63,7 @@
               </button>
               <input type="hidden" formControlName="birthDate" />
 
-              @if (isDatepickerOpen) {
-                <div class="jalali-datepicker" role="dialog" aria-label="انتخاب تاریخ تولد شمسی">
+              <div *ngIf="isDatepickerOpen" class="jalali-datepicker" role="dialog" aria-label="انتخاب تاریخ تولد شمسی">
                   <div class="datepicker-header">
                     <button type="button" (click)="previousMonth()" aria-label="ماه قبل">
                       <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
@@ -78,14 +75,12 @@
                   </div>
 
                   <div class="weekday-grid" aria-hidden="true">
-                    @for (dayName of weekDays; track dayName) {
-                      <span>{{ dayName }}</span>
-                    }
+                    <span *ngFor="let dayName of weekDays; trackBy: trackByText">{{ dayName }}</span>
                   </div>
 
                   <div class="day-grid">
-                    @for (day of calendarDays; track day?.isoDate ?? $index) {
-                      <button
+                    <button
+                        *ngFor="let day of calendarDays; trackBy: trackByCalendarDay"
                         type="button"
                         [class.day-cell--empty]="!day"
                         [class.day-cell--today]="day?.isToday"
@@ -95,10 +90,8 @@
                       >
                         {{ day?.label }}
                       </button>
-                    }
                   </div>
                 </div>
-              }
             </div>
           </div>
 
@@ -124,11 +117,10 @@
           <label for="register-avatar">تصویر آواتار</label>
           <label class="avatar-upload" for="register-avatar">
             <span class="avatar-preview" aria-hidden="true">
-              @if (selectedAvatarPreview) {
-                <img [src]="selectedAvatarPreview" alt="" />
-              } @else {
+              <img *ngIf="selectedAvatarPreview; else avatarPlaceholder" [src]="selectedAvatarPreview" alt="" />
+              <ng-template #avatarPlaceholder>
                 <span class="material-symbols-outlined">add_a_photo</span>
-              }
+              </ng-template>
             </span>
             <span class="avatar-upload__text">
               {{ selectedAvatarName || 'انتخاب تصویر' }}

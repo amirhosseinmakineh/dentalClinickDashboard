@@ -1,41 +1,40 @@
 <div class="dashboard-shell" dir="rtl" [class.is-sidebar-closed]="!isSidebarOpen" [class.is-profile-blocked]="requiresAdminProfile">
-  @if (!requiresAdminProfile) {
-    <app-sidebar
-      [items]="sidebarItems"
-      [isOpen]="isSidebarOpen"
-      [activeKey]="activeKey"
-      title="دل‌خند"
-      [subtitle]="roleLabel"
-      (toggleSidebar)="toggleSidebar()"
-      (closeSidebar)="closeSidebar()"
-      (itemSelected)="setActive($event)"
-    />
-  }
+  <app-sidebar
+    *ngIf="!requiresAdminProfile"
+    [items]="sidebarItems"
+    [isOpen]="isSidebarOpen"
+    [activeKey]="activeKey"
+    title="دل‌خند"
+    [subtitle]="roleLabel"
+    (toggleSidebar)="toggleSidebar()"
+    (closeSidebar)="closeSidebar()"
+    (itemSelected)="setActive($event)"
+  />
 
   <main class="dashboard-main">
     <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" />
 
-    @if (requiresAdminProfile) {
-      <section class="profile-completion-panel" aria-labelledby="profile-completion-title">
-        <div class="profile-completion-card">
-          <span class="material-symbols-outlined" aria-hidden="true">lock_person</span>
-          <h2 id="profile-completion-title">تکمیل پروفایل ادمین</h2>
-          <p>تا زمانی که کد ملی و آدرس ثبت نشود، هیچ بخشی از داشبورد فعال نخواهد بود.</p>
+    <section *ngIf="requiresAdminProfile; else dashboardContent" class="profile-completion-panel" aria-labelledby="profile-completion-title">
+      <div class="profile-completion-card">
+        <span class="material-symbols-outlined" aria-hidden="true">lock_person</span>
+        <h2 id="profile-completion-title">تکمیل پروفایل ادمین</h2>
+        <p>تا زمانی که کد ملی و آدرس ثبت نشود، هیچ بخشی از داشبورد فعال نخواهد بود.</p>
 
-          <form [formGroup]="profileForm" (ngSubmit)="submitAdminProfile()">
-            <label for="admin-national-code">کد ملی</label>
-            <input id="admin-national-code" formControlName="nationalCode" type="text" inputmode="numeric" maxlength="10" placeholder="0012345678" />
+        <form [formGroup]="profileForm" (ngSubmit)="submitAdminProfile()">
+          <label for="admin-national-code">کد ملی</label>
+          <input id="admin-national-code" formControlName="nationalCode" type="text" inputmode="numeric" maxlength="10" placeholder="0012345678" />
 
-            <label for="admin-address">آدرس</label>
-            <textarea id="admin-address" formControlName="address" rows="4" placeholder="آدرس کامل"></textarea>
+          <label for="admin-address">آدرس</label>
+          <textarea id="admin-address" formControlName="address" rows="4" placeholder="آدرس کامل"></textarea>
 
-            <button class="primary-button" type="submit" [disabled]="profileForm.invalid || isProfileSubmitting">
-              {{ isProfileSubmitting ? 'در حال ثبت...' : 'ثبت و فعال‌سازی داشبورد' }}
-            </button>
-          </form>
-        </div>
-      </section>
-    } @else {
+          <button class="primary-button" type="submit" [disabled]="profileForm.invalid || isProfileSubmitting">
+            {{ isProfileSubmitting ? 'در حال ثبت...' : 'ثبت و فعال‌سازی داشبورد' }}
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <ng-template #dashboardContent>
       <section class="content-canvas" aria-label="فضای محتوای اصلی">
         <div>
           <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
@@ -47,29 +46,28 @@
       </section>
 
       <section class="stats-grid" aria-label="شاخص‌های کلیدی کلینیک">
-        @for (stat of stats; track stat.label) {
-          <article class="stat-card">
-            <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
-            <div>
-              <p>{{ stat.label }}</p>
-              <strong>{{ stat.value }}</strong>
-              <small>{{ stat.trend }}</small>
-            </div>
-          </article>
-        }
+        <article class="stat-card" *ngFor="let stat of stats; trackBy: trackByLabel">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
+          <div>
+            <p>{{ stat.label }}</p>
+            <strong>{{ stat.value }}</strong>
+            <small>{{ stat.trend }}</small>
+          </div>
+        </article>
       </section>
 
-      @if (activeKey === 'users') {
-        <section class="management-panel" aria-labelledby="users-title">
+      <ng-container [ngSwitch]="activeKey">
+        <section *ngSwitchCase="'users'" class="management-panel" aria-labelledby="users-title">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">User Management</p>
               <h2 id="users-title">مدیریت کاربران</h2>
-              <p>فهرست کاربران پنل، وضعیت حساب و نقش فعلی هر کاربر را به صورت یکپارچه کنترل کنید.</p>
+              <p>افزودن، ویرایش و حذف کاربر فقط از طریق دیالوگ انجام می‌شود؛ جدول نیز صفحه‌بندی فرانت مشابه PaginatedResult بک‌اند دارد.</p>
             </div>
             <div class="panel-actions">
-              <button type="button" class="ghost-button">خروجی اکسل</button>
-              <button type="button" class="primary-button">افزودن کاربر</button>
+              <button type="button" class="ghost-button" (click)="exportUsers('excel')">خروجی اکسل</button>
+              <button type="button" class="ghost-button" (click)="exportUsers('pdf')">خروجی PDF</button>
+              <button type="button" class="primary-button" (click)="openUserDialog('create')">افزودن کاربر</button>
             </div>
           </div>
 
@@ -82,53 +80,89 @@
             <button type="button">مرتب‌سازی</button>
           </div>
 
-          <div class="data-table" role="table" aria-label="جدول کاربران">
+          <div class="data-table data-table--users" role="table" aria-label="جدول کاربران">
             <div class="table-row table-head" role="row">
               <span role="columnheader">کاربر</span>
               <span role="columnheader">نقش</span>
               <span role="columnheader">شماره تماس</span>
               <span role="columnheader">وضعیت</span>
               <span role="columnheader">آخرین فعالیت</span>
+              <span role="columnheader">عملیات</span>
             </div>
-            @for (user of users; track user.phone) {
-              <div class="table-row" role="row">
-                <span role="cell">{{ user.name }}</span>
-                <span role="cell">{{ user.role }}</span>
-                <span role="cell" dir="ltr">{{ user.phone }}</span>
-                <span role="cell"><mark>{{ user.status }}</mark></span>
-                <span role="cell">{{ user.lastSeen }}</span>
-              </div>
-            }
+            <div class="table-row" role="row" *ngFor="let user of userPage.items; trackBy: trackById">
+              <span role="cell">{{ user.name }}</span>
+              <span role="cell">{{ user.role }}</span>
+              <span role="cell" dir="ltr">{{ user.phone }}</span>
+              <span role="cell"><mark>{{ user.status }}</mark></span>
+              <span role="cell">{{ user.lastSeen }}</span>
+              <span role="cell" class="row-actions">
+                <button type="button" (click)="openUserDialog('edit', user)">ویرایش</button>
+                <button type="button" class="danger-link" (click)="openUserDialog('delete', user)">حذف</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="pagination-bar" aria-label="صفحه‌بندی کاربران">
+            <span>نمایش {{ userPage.items.length }} از {{ userPage.totalCount }} کاربر - صفحه {{ userPage.pageNumber }} از {{ userPage.totalPages }}</span>
+            <label>
+              تعداد در صفحه
+              <select [value]="userPageSize" (change)="changeUserPageSize($event)">
+                <option *ngFor="let size of pageSizeOptions; trackBy: trackByValue" [value]="size">{{ size }}</option>
+              </select>
+            </label>
+            <div>
+              <button type="button" [disabled]="!userPage.hasPrevious" (click)="changeUserPage(userPage.pageNumber - 1)">قبلی</button>
+              <button type="button" [disabled]="!userPage.hasNext" (click)="changeUserPage(userPage.pageNumber + 1)">بعدی</button>
+            </div>
           </div>
         </section>
-      } @else if (activeKey === 'roles') {
-        <section class="management-panel" aria-labelledby="roles-title">
+
+        <section *ngSwitchCase="'roles'" class="management-panel" aria-labelledby="roles-title">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Role Management</p>
               <h2 id="roles-title">مدیریت نقش ها</h2>
-              <p>نقش‌ها را تعریف کنید، محدوده دسترسی را ببینید و برای هر گروه سطح مجوز مشخص کنید.</p>
+              <p>ایجاد، ویرایش و حذف نقش هم مثل کاربران داخل دیالوگ انجام می‌شود و جدول نقش‌ها خروجی اکسل و PDF دارد.</p>
             </div>
             <div class="panel-actions">
-              <button type="button" class="ghost-button">بازبینی دسترسی‌ها</button>
-              <button type="button" class="primary-button">ایجاد نقش</button>
+              <button type="button" class="ghost-button" (click)="exportRoles('excel')">خروجی اکسل</button>
+              <button type="button" class="ghost-button" (click)="exportRoles('pdf')">خروجی PDF</button>
+              <button type="button" class="primary-button" (click)="openRoleDialog('create')">ایجاد نقش</button>
             </div>
           </div>
 
-          <div class="role-grid">
-            @for (role of roles; track role.title) {
-              <article class="role-card">
-                <div class="role-icon">
-                  <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
-                </div>
-                <h3>{{ role.title }}</h3>
-                <p>{{ role.scope }}</p>
-                <div class="role-meta">
-                  <span>{{ role.members }}</span>
-                  <strong>{{ role.access }}</strong>
-                </div>
-              </article>
-            }
+          <div class="data-table data-table--roles" role="table" aria-label="جدول نقش‌ها">
+            <div class="table-row table-head" role="row">
+              <span role="columnheader">نقش</span>
+              <span role="columnheader">اعضا</span>
+              <span role="columnheader">محدوده دسترسی</span>
+              <span role="columnheader">سطح مجوز</span>
+              <span role="columnheader">عملیات</span>
+            </div>
+            <div class="table-row" role="row" *ngFor="let roleItem of rolePage.items; trackBy: trackById">
+              <span role="cell">{{ roleItem.title }}</span>
+              <span role="cell">{{ roleItem.members }}</span>
+              <span role="cell">{{ roleItem.scope }}</span>
+              <span role="cell"><mark>{{ roleItem.access }}</mark></span>
+              <span role="cell" class="row-actions">
+                <button type="button" (click)="openRoleDialog('edit', roleItem)">ویرایش</button>
+                <button type="button" class="danger-link" (click)="openRoleDialog('delete', roleItem)">حذف</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="pagination-bar" aria-label="صفحه‌بندی نقش‌ها">
+            <span>نمایش {{ rolePage.items.length }} از {{ rolePage.totalCount }} نقش - صفحه {{ rolePage.pageNumber }} از {{ rolePage.totalPages }}</span>
+            <label>
+              تعداد در صفحه
+              <select [value]="rolePageSize" (change)="changeRolePageSize($event)">
+                <option *ngFor="let size of pageSizeOptions; trackBy: trackByValue" [value]="size">{{ size }}</option>
+              </select>
+            </label>
+            <div>
+              <button type="button" [disabled]="!rolePage.hasPrevious" (click)="changeRolePage(rolePage.pageNumber - 1)">قبلی</button>
+              <button type="button" [disabled]="!rolePage.hasNext" (click)="changeRolePage(rolePage.pageNumber + 1)">بعدی</button>
+            </div>
           </div>
 
           <div class="permission-matrix">
@@ -147,8 +181,46 @@
             </div>
           </div>
         </section>
-      } @else {
-        <section class="management-panel" aria-labelledby="overview-title">
+
+        <section *ngSwitchCase="'settings'" class="management-panel" aria-labelledby="display-settings-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Dashboard Display Policy</p>
+              <h2 id="display-settings-title">تنظیم نمایش دسکتاپ و موبایل</h2>
+              <p>ادمین می‌تواند برای داشبورد ادمین، مشاور، بیمار، منشی و هر نقش آینده، چیدمان دسکتاپ و موبایل را جداگانه مشخص کند.</p>
+            </div>
+          </div>
+
+          <div class="display-policy-grid">
+            <article class="display-policy-card" *ngFor="let preference of displayPreferences; trackBy: trackByPreference">
+              <div>
+                <span class="material-symbols-outlined" aria-hidden="true">devices</span>
+                <h3>{{ preference.audienceLabel }}</h3>
+                <p>ویجت پیش‌فرض: {{ preference.defaultWidget }} | تراکم جدول: {{ preference.tableDensity }}</p>
+              </div>
+              <label>
+                نمایش روی سیستم
+                <select [value]="preference.desktopLayout" (change)="updateDisplayPreference(preference.audience, 'desktop', $event)">
+                  <option value="سایدبار کامل + جدول‌های مدیریتی">سایدبار کامل + جدول‌های مدیریتی</option>
+                  <option value="کارت‌های تحلیلی + جدول تمام‌عرض">کارت‌های تحلیلی + جدول تمام‌عرض</option>
+                  <option value="لیدهای اولویت‌دار + گزارش مشاوره">لیدهای اولویت‌دار + گزارش مشاوره</option>
+                  <option value="تقویم روزانه + جدول بیماران">تقویم روزانه + جدول بیماران</option>
+                </select>
+              </label>
+              <label>
+                نمایش روی موبایل
+                <select [value]="preference.mobileLayout" (change)="updateDisplayPreference(preference.audience, 'mobile', $event)">
+                  <option value="کارت‌های فشرده + اکشن‌های چسبان">کارت‌های فشرده + اکشن‌های چسبان</option>
+                  <option value="صف لیدها + تایمر تمام‌عرض">صف لیدها + تایمر تمام‌عرض</option>
+                  <option value="کارت نوبت بعدی + پرونده خلاصه">کارت نوبت بعدی + پرونده خلاصه</option>
+                  <option value="لیست نوبت‌های امروز">لیست نوبت‌های امروز</option>
+                </select>
+              </label>
+            </article>
+          </div>
+        </section>
+
+        <section *ngSwitchDefault class="management-panel" aria-labelledby="overview-title">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">{{ role === 'consultant' ? 'Consultant Access' : 'Clinic Overview' }}</p>
@@ -170,7 +242,55 @@
             </article>
           </div>
         </section>
-      }
-    }
+      </ng-container>
+    </ng-template>
   </main>
+</div>
+
+<div class="dialog-backdrop" *ngIf="dialogEntity" role="presentation" (click)="closeDialog()">
+  <section class="admin-dialog" role="dialog" aria-modal="true" [attr.aria-label]="dialogTitle" (click)="$event.stopPropagation()">
+    <header>
+      <h2>{{ dialogTitle }}</h2>
+      <button type="button" aria-label="بستن دیالوگ" (click)="closeDialog()">×</button>
+    </header>
+
+    <form *ngIf="dialogEntity === 'user' && dialogMode !== 'delete'" [formGroup]="userForm" (ngSubmit)="submitDialog()" class="dialog-form">
+      <label>نام کاربر<input type="text" formControlName="name" /></label>
+      <label>نقش<input type="text" formControlName="role" /></label>
+      <label>شماره تماس<input type="text" formControlName="phone" dir="ltr" /></label>
+      <label>وضعیت
+        <select formControlName="status">
+          <option value="فعال">فعال</option>
+          <option value="در انتظار تایید">در انتظار تایید</option>
+          <option value="غیرفعال">غیرفعال</option>
+        </select>
+      </label>
+      <label>آخرین فعالیت<input type="text" formControlName="lastSeen" /></label>
+      <div class="dialog-actions">
+        <button type="button" class="ghost-button" (click)="closeDialog()">انصراف</button>
+        <button type="submit" class="primary-button" [disabled]="userForm.invalid">ثبت</button>
+      </div>
+    </form>
+
+    <form *ngIf="dialogEntity === 'role' && dialogMode !== 'delete'" [formGroup]="roleForm" (ngSubmit)="submitDialog()" class="dialog-form">
+      <label>عنوان نقش<input type="text" formControlName="title" /></label>
+      <label>اعضا<input type="text" formControlName="members" /></label>
+      <label>محدوده دسترسی<textarea rows="3" formControlName="scope"></textarea></label>
+      <label>سطح مجوز<input type="text" formControlName="access" /></label>
+      <div class="dialog-actions">
+        <button type="button" class="ghost-button" (click)="closeDialog()">انصراف</button>
+        <button type="submit" class="primary-button" [disabled]="roleForm.invalid">ثبت</button>
+      </div>
+    </form>
+
+    <div class="delete-confirm" *ngIf="dialogMode === 'delete'">
+      <span class="material-symbols-outlined" aria-hidden="true">warning</span>
+      <p *ngIf="dialogEntity === 'user'">آیا از حذف کاربر «{{ selectedUser?.name }}» مطمئن هستید؟ این عملیات فقط از همین دیالوگ تایید می‌شود.</p>
+      <p *ngIf="dialogEntity === 'role'">آیا از حذف نقش «{{ selectedRole?.title }}» مطمئن هستید؟ این عملیات فقط از همین دیالوگ تایید می‌شود.</p>
+      <div class="dialog-actions">
+        <button type="button" class="ghost-button" (click)="closeDialog()">انصراف</button>
+        <button type="button" class="danger-button" (click)="submitDialog()">حذف قطعی</button>
+      </div>
+    </div>
+  </section>
 </div>

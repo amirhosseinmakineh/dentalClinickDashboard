@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 export interface SidebarItem {
@@ -10,11 +11,15 @@ export interface SidebarItem {
 
 @Component({
   selector: 'app-sidebar',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
+  trackByKey(_index: number, item: SidebarItem): string {
+    return item.key;
+  }
+
   @Input() items: SidebarItem[] = [];
   @Input() isOpen = true;
   @Input() title = 'Angular 20';
