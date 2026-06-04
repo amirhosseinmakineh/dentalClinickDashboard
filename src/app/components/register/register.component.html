@@ -4,16 +4,17 @@
       <p class="eyebrow">عضویت در دل‌خند</p>
       <h2>کلینیک دندانپزشکی دل‌خند</h2>
       <p>
-        تجربه‌ای آرام و دلپذیر از مراقبت‌های دندانپزشکی در فضایی مدرن و حرفه‌ای. لبخند شما، تخصص ماست.
+        برای ایجاد حساب کاربری، همان اطلاعات پروفایل اولیه را وارد کنید تا درخواست ثبت‌نام به صورت مستقیم برای
+        سامانه ارسال شود.
       </p>
       <div class="intro-list">
         <div>
           <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
-          <span>تجهیزات پیشرفته و کادر مجرب</span>
+          <span>ارسال اطلاعات ثبت‌نام به سرویس اصلی</span>
         </div>
         <div>
-          <span class="material-symbols-outlined" aria-hidden="true">spa</span>
-          <span>محیطی آرام و بدون استرس</span>
+          <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+          <span>انتخاب تاریخ تولد به صورت شمسی</span>
         </div>
       </div>
     </aside>
@@ -22,54 +23,143 @@
       <div class="auth-card__header auth-card__header--right">
         <p class="eyebrow">ثبت‌نام سریع</p>
         <h2 id="register-title">ایجاد حساب کاربری</h2>
-        <p>برای بهره‌مندی از خدمات آنلاین دل‌خند، اطلاعات خود را وارد کنید.</p>
+        <p>اطلاعات زیر مطابق مدل ثبت‌نام دریافت می‌شود و تاریخ تولد به صورت میلادی برای بک‌اند ارسال می‌گردد.</p>
       </div>
 
-      <form class="auth-form auth-form--register" aria-label="فرم نمایشی ثبت‌نام">
-        <div class="form-field">
-          <label for="register-name">نام و نام خانوادگی</label>
-          <div class="input-wrap">
-            <input id="register-name" name="name" type="text" placeholder="مثال: علی محمدی" autocomplete="name" />
-            <span class="material-symbols-outlined" aria-hidden="true">person</span>
+      <form class="auth-form auth-form--register" [formGroup]="registerForm" (ngSubmit)="submit()" aria-label="فرم ثبت‌نام">
+        <div class="form-grid form-grid--two">
+          <div class="form-field">
+            <label for="register-first-name">نام</label>
+            <div class="input-wrap">
+              <input id="register-first-name" type="text" formControlName="firstName" placeholder="مثال: علی" autocomplete="given-name" />
+              <span class="material-symbols-outlined" aria-hidden="true">person</span>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="register-last-name">نام خانوادگی</label>
+            <div class="input-wrap">
+              <input id="register-last-name" type="text" formControlName="lastName" placeholder="مثال: محمدی" autocomplete="family-name" />
+              <span class="material-symbols-outlined" aria-hidden="true">badge</span>
+            </div>
           </div>
         </div>
 
-        <div class="form-field">
-          <label for="register-phone">شماره موبایل</label>
-          <div class="input-wrap input-wrap--ltr-value">
-            <input id="register-phone" name="phone" type="tel" placeholder="0912 345 6789" autocomplete="tel" />
-            <span class="material-symbols-outlined" aria-hidden="true">phone_iphone</span>
+        <div class="form-grid form-grid--two">
+          <div class="form-field">
+            <label for="register-phone">شماره موبایل</label>
+            <div class="input-wrap input-wrap--ltr-value">
+              <input id="register-phone" type="tel" formControlName="phoneNumber" placeholder="09123456789" autocomplete="tel" inputmode="tel" />
+              <span class="material-symbols-outlined" aria-hidden="true">phone_iphone</span>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="register-gender">جنسیت</label>
+            <div class="input-wrap input-wrap--select">
+              <select id="register-gender" formControlName="gender">
+                @for (option of genderOptions; track option.value) {
+                  <option [ngValue]="option.value">{{ option.label }}</option>
+                }
+              </select>
+              <span class="material-symbols-outlined" aria-hidden="true">wc</span>
+            </div>
           </div>
         </div>
 
-        <div class="form-field">
-          <label for="register-email">آدرس ایمیل</label>
-          <div class="input-wrap input-wrap--ltr-value">
-            <input id="register-email" name="email" type="email" placeholder="example@gmail.com" autocomplete="email" />
-            <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+        <div class="form-grid form-grid--two">
+          <div class="form-field">
+            <label for="register-birth-date">تاریخ تولد</label>
+            <div class="date-field" (click)="$event.stopPropagation()">
+              <button
+                id="register-birth-date"
+                class="input-wrap input-wrap--date"
+                type="button"
+                (click)="toggleDatepicker($event)"
+                [attr.aria-expanded]="isDatepickerOpen"
+                aria-haspopup="dialog"
+              >
+                <span class="date-value" [class.date-value--placeholder]="!selectedJalaliDate">
+                  {{ selectedJalaliDate || 'انتخاب تاریخ شمسی' }}
+                </span>
+                <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+              </button>
+              <input type="hidden" formControlName="birthDate" />
+
+              @if (isDatepickerOpen) {
+                <div class="jalali-datepicker" role="dialog" aria-label="انتخاب تاریخ تولد شمسی">
+                  <div class="datepicker-header">
+                    <button type="button" (click)="previousMonth()" aria-label="ماه قبل">
+                      <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                    </button>
+                    <strong>{{ currentMonthTitle }}</strong>
+                    <button type="button" (click)="nextMonth()" aria-label="ماه بعد">
+                      <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+                    </button>
+                  </div>
+
+                  <div class="weekday-grid" aria-hidden="true">
+                    @for (dayName of weekDays; track dayName) {
+                      <span>{{ dayName }}</span>
+                    }
+                  </div>
+
+                  <div class="day-grid">
+                    @for (day of calendarDays; track day?.isoDate ?? $index) {
+                      <button
+                        type="button"
+                        [class.day-cell--empty]="!day"
+                        [class.day-cell--today]="day?.isToday"
+                        [class.day-cell--selected]="day?.isSelected"
+                        [disabled]="!day"
+                        (click)="selectDate(day, $event)"
+                      >
+                        {{ day?.label }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="register-avatar">نام فایل تصویر آواتار</label>
+            <div class="input-wrap input-wrap--ltr-value">
+              <input id="register-avatar" type="text" formControlName="avatarImageName" placeholder="avatar.png" autocomplete="off" />
+              <span class="material-symbols-outlined" aria-hidden="true">image</span>
+            </div>
           </div>
         </div>
 
         <div class="form-field">
           <label for="register-password">رمز عبور</label>
-          <div class="input-wrap input-wrap--password">
-            <input id="register-password" name="password" type="password" placeholder="••••••••" autocomplete="new-password" />
+          <div class="input-wrap input-wrap--password input-wrap--ltr-value">
+            <input
+              id="register-password"
+              formControlName="passwordHash"
+              [type]="isPasswordVisible ? 'text' : 'password'"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            />
             <span class="material-symbols-outlined" aria-hidden="true">lock</span>
-            <button type="button" aria-label="نمایش رمز عبور">
-              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            <button type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="isPasswordVisible ? 'مخفی کردن رمز عبور' : 'نمایش رمز عبور'">
+              <span class="material-symbols-outlined" aria-hidden="true">{{ isPasswordVisible ? 'visibility_off' : 'visibility' }}</span>
             </button>
           </div>
         </div>
 
         <div class="check-row check-row--terms">
-          <input id="terms" type="checkbox" />
-          <label for="terms">با ثبت‌نام، تمامی <a href="#register">قوانین و مقررات</a> کلینیک دل‌خند را می‌پذیرم.</label>
+          <input id="complete-profile" type="checkbox" formControlName="isCompleteProfile" />
+          <label for="complete-profile">پروفایل کاربر کامل است</label>
         </div>
 
-        <button class="auth-submit" type="button">ثبت‌نام</button>
+        <button class="auth-submit" type="submit" [disabled]="registerForm.invalid || isSubmitting">
+          {{ isSubmitting ? 'در حال ارسال...' : 'ثبت‌نام' }}
+        </button>
       </form>
 
-      <p class="auth-switch">قبلاً حساب کاربری ساخته‌اید؟ <a href="#login">وارد شوید</a></p>
+      <p class="auth-switch">قبلاً حساب کاربری ساخته‌اید؟ <a routerLink="/login">وارد شوید</a></p>
     </div>
   </div>
 </section>
