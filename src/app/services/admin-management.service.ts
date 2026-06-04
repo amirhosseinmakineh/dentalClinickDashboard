@@ -47,7 +47,7 @@ export class AdminManagementService {
   }
 
   updateUser(command: UpdateUserCommandPayload): Observable<ApiResult<object>> {
-    return this.http.patch<ApiResultResponse<object>>(`${this.apiBaseUrl}/User`, command, {
+    return this.http.put<ApiResultResponse<object>>(`${this.apiBaseUrl}/User`, command, {
       headers: this.getAuthorizationHeaders()
     }).pipe(
       map((response) => this.normalizeResult(response)),
