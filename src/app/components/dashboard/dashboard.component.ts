@@ -147,10 +147,8 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.role !== 'consultant') {
-      this.loadRoles();
-      this.loadUsers();
-    }
+    this.loadRoles();
+    this.loadUsers();
   }
 
   get sidebarItems(): SidebarItem[] {
@@ -168,10 +166,6 @@ export class DashboardComponent implements OnInit {
   get roleLabel(): string {
     if (this.role === 'admin') {
       return 'ادمین';
-    }
-
-    if (this.role === 'consultant') {
-      return 'مشاور';
     }
 
     return 'کاربر';
