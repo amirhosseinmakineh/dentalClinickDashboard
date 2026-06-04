@@ -151,15 +151,15 @@ export class DashboardComponent {
   }
 
   get sidebarItems(): SidebarItem[] {
-    if (this.requiresAdminProfile) {
+    if (this.requiresConsultantProfile) {
       return [];
     }
 
     return this.role === 'consultant' ? this.consultantSidebarItems : this.adminSidebarItems;
   }
 
-  get requiresAdminProfile(): boolean {
-    return this.role === 'admin' && !this.isCompleteProfile;
+  get requiresConsultantProfile(): boolean {
+    return this.role === 'consultant' && !this.isCompleteProfile;
   }
 
   get activeTitle(): string {
@@ -167,8 +167,8 @@ export class DashboardComponent {
   }
 
   get activeSubtitle(): string {
-    if (this.requiresAdminProfile) {
-      return 'برای فعال شدن داشبورد، کد ملی و آدرس پروفایل ادمین را تکمیل کنید.';
+    if (this.requiresConsultantProfile) {
+      return 'برای فعال شدن داشبورد، کد ملی و آدرس پروفایل مشاور را تکمیل کنید.';
     }
 
     if (this.role === 'consultant') {
@@ -231,7 +231,7 @@ export class DashboardComponent {
   }
 
   setActive(item: SidebarItem): void {
-    if (this.requiresAdminProfile || !this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
+    if (this.requiresConsultantProfile || !this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
       return;
     }
 
@@ -239,7 +239,7 @@ export class DashboardComponent {
     this.closeSidebar();
   }
 
-  submitAdminProfile(): void {
+  submitConsultantProfile(): void {
     if (this.profileForm.invalid || this.isProfileSubmitting) {
       this.profileForm.markAllAsTouched();
       return;
@@ -249,7 +249,7 @@ export class DashboardComponent {
     const value = this.profileForm.getRawValue();
 
     this.authService
-      .completeAdminProfile({
+      .completeConsultantProfile({
         nationalCode: value.nationalCode.trim(),
         address: value.address.trim()
       })

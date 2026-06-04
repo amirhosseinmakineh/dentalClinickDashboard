@@ -1,6 +1,6 @@
-<div class="dashboard-shell" dir="rtl" [class.is-sidebar-closed]="!isSidebarOpen" [class.is-profile-blocked]="requiresAdminProfile">
+<div class="dashboard-shell" dir="rtl" [class.is-sidebar-closed]="!isSidebarOpen" [class.is-profile-blocked]="requiresConsultantProfile">
   <app-sidebar
-    *ngIf="!requiresAdminProfile"
+    *ngIf="!requiresConsultantProfile"
     [items]="sidebarItems"
     [isOpen]="isSidebarOpen"
     [activeKey]="activeKey"
@@ -14,18 +14,18 @@
   <main class="dashboard-main">
     <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" />
 
-    <section *ngIf="requiresAdminProfile; else dashboardContent" class="profile-completion-panel" aria-labelledby="profile-completion-title">
+    <section *ngIf="requiresConsultantProfile; else dashboardContent" class="profile-completion-panel" aria-labelledby="profile-completion-title">
       <div class="profile-completion-card">
         <span class="material-symbols-outlined" aria-hidden="true">lock_person</span>
-        <h2 id="profile-completion-title">تکمیل پروفایل ادمین</h2>
-        <p>تا زمانی که کد ملی و آدرس ثبت نشود، هیچ بخشی از داشبورد فعال نخواهد بود.</p>
+        <h2 id="profile-completion-title">تکمیل پروفایل مشاور</h2>
+        <p>تا زمانی که کد ملی و آدرس پروفایل مشاور ثبت نشود، هیچ بخشی از داشبورد فعال نخواهد بود.</p>
 
-        <form [formGroup]="profileForm" (ngSubmit)="submitAdminProfile()">
-          <label for="admin-national-code">کد ملی</label>
-          <input id="admin-national-code" formControlName="nationalCode" type="text" inputmode="numeric" maxlength="10" placeholder="0012345678" />
+        <form [formGroup]="profileForm" (ngSubmit)="submitConsultantProfile()">
+          <label for="consultant-national-code">کد ملی</label>
+          <input id="consultant-national-code" formControlName="nationalCode" type="text" inputmode="numeric" maxlength="10" placeholder="0012345678" />
 
-          <label for="admin-address">آدرس</label>
-          <textarea id="admin-address" formControlName="address" rows="4" placeholder="آدرس کامل"></textarea>
+          <label for="consultant-address">آدرس</label>
+          <textarea id="consultant-address" formControlName="address" rows="4" placeholder="آدرس کامل"></textarea>
 
           <button class="primary-button" type="submit" [disabled]="profileForm.invalid || isProfileSubmitting">
             {{ isProfileSubmitting ? 'در حال ثبت...' : 'ثبت و فعال‌سازی داشبورد' }}

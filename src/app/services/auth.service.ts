@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 
 import { ApiResult } from '../models/api-result.model';
-import { CompleteAdminProfileCommand, LoginCommand, LoginResponseData } from '../models/auth.model';
+import { CompleteConsultantProfileCommand, LoginCommand, LoginResponseData } from '../models/auth.model';
 import { RegisterCommand } from '../models/register-command.model';
 import { AuthSessionService } from './auth-session.service';
 
@@ -36,8 +36,8 @@ export class AuthService {
     );
   }
 
-  completeAdminProfile(command: CompleteAdminProfileCommand): Observable<ApiResult<object>> {
-    return this.http.post<ApiResultResponse<object>>(`${this.apiBaseUrl}/Auth/CompleteAdminProfile`, command, {
+  completeConsultantProfile(command: CompleteConsultantProfileCommand): Observable<ApiResult<object>> {
+    return this.http.post<ApiResultResponse<object>>(`${this.apiBaseUrl}/Auth/CompleteConsultantProfile`, command, {
       headers: this.getAuthorizationHeaders()
     }).pipe(
       map((response) => this.normalizeResult(response)),
