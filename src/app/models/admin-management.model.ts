@@ -1,3 +1,5 @@
+import { Gender } from './register-command.model';
+
 export interface AdminUser {
   id?: number | string | null;
   userId?: number | string | null;
@@ -10,7 +12,11 @@ export interface AdminUser {
   role?: string | null;
   roleName?: string | null;
   status?: string | null;
-  lastSeen?: string | null;
+  isActive?: boolean | null;
+  isCompleteProfile?: boolean | null;
+  avatarImageName?: string | null;
+  gender?: Gender | number | null;
+  birthDate?: string | null;
 }
 
 export interface AdminRole {
@@ -25,20 +31,34 @@ export interface AdminRole {
   access?: string | null;
 }
 
-export interface UserCommandPayload {
-  id?: number | string;
-  userId?: number | string;
+export interface CreateUserCommandPayload {
   firstName: string;
   lastName: string;
-  fullName: string;
-  name: string;
-  role: string;
-  roleName: string;
-  phone: string;
   phoneNumber: string;
-  status: string;
-  lastSeen: string;
+  passwordHash: string;
+  birthDate: string;
+  gender: Gender;
+  avatarImageName?: string | null;
+  roleName: string;
 }
+
+export interface UpdateUserCommandPayload {
+  id: number | string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  isCompleteProfile: boolean;
+  avatarImageName?: string | null;
+  gender: Gender;
+  isActive: boolean;
+  roleName: string;
+}
+
+export interface DeleteUserCommandPayload {
+  userId: number | string;
+}
+
+export type UserCommandPayload = CreateUserCommandPayload | UpdateUserCommandPayload | DeleteUserCommandPayload;
 
 export interface RoleCommandPayload {
   id?: number | string;

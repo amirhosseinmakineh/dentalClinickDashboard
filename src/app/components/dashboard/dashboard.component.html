@@ -62,7 +62,7 @@
             <div>
               <p class="eyebrow">User Management</p>
               <h2 id="users-title">مدیریت کاربران</h2>
-              <p>افزودن، ویرایش و حذف کاربر از طریق API بک‌اند روی پورت ۵۱۸۲ انجام می‌شود؛ جدول نیز صفحه‌بندی فرانت مشابه PaginatedResult بک‌اند دارد.</p>
+              <p>افزودن، ویرایش، تغییر نقش و حذف کاربر مطابق قراردادهای User بک‌اند روی پورت ۵۱۸۲ انجام می‌شود.</p>
             </div>
             <div class="panel-actions">
               <button type="button" class="ghost-button" (click)="exportUsers('excel')">خروجی اکسل</button>
@@ -74,7 +74,7 @@
           <div class="toolbar">
             <label>
               <span class="material-symbols-outlined" aria-hidden="true">search</span>
-              <input type="search" placeholder="جستجوی نام، نقش یا شماره تماس" />
+              <input type="search" placeholder="جستجوی نام، نقش یا شماره موبایل" />
             </label>
             <button type="button">فیلتر وضعیت</button>
             <button type="button">مرتب‌سازی</button>
@@ -87,17 +87,17 @@
             <div class="table-row table-head" role="row">
               <span role="columnheader">کاربر</span>
               <span role="columnheader">نقش</span>
-              <span role="columnheader">شماره تماس</span>
+              <span role="columnheader">شماره موبایل</span>
               <span role="columnheader">وضعیت</span>
-              <span role="columnheader">آخرین فعالیت</span>
+              <span role="columnheader">پروفایل</span>
               <span role="columnheader">عملیات</span>
             </div>
             <div class="table-row" role="row" *ngFor="let user of userPage.items; trackBy: trackById">
               <span role="cell">{{ user.name }}</span>
-              <span role="cell">{{ user.role }}</span>
-              <span role="cell" dir="ltr">{{ user.phone }}</span>
-              <span role="cell"><mark>{{ user.status }}</mark></span>
-              <span role="cell">{{ user.lastSeen }}</span>
+              <span role="cell">{{ user.roleName }}</span>
+              <span role="cell" dir="ltr">{{ user.phoneNumber }}</span>
+              <span role="cell"><mark>{{ getUserStatusLabel(user) }}</mark></span>
+              <span role="cell">{{ getProfileStatusLabel(user) }} / {{ getGenderLabel(user.gender) }}</span>
               <span role="cell" class="row-actions">
                 <button type="button" (click)="openUserDialog('edit', user)">ویرایش</button>
                 <button type="button" class="danger-link" (click)="openUserDialog('delete', user)">حذف</button>
@@ -261,17 +261,36 @@
     </header>
 
     <form *ngIf="dialogEntity === 'user' && dialogMode !== 'delete'" [formGroup]="userForm" (ngSubmit)="submitDialog()" class="dialog-form">
-      <label>نام کاربر<input type="text" formControlName="name" /></label>
-      <label>نقش<input type="text" formControlName="role" /></label>
-      <label>شماره تماس<input type="text" formControlName="phone" dir="ltr" /></label>
-      <label>وضعیت
-        <select formControlName="status">
-          <option value="فعال">فعال</option>
-          <option value="در انتظار تایید">در انتظار تایید</option>
-          <option value="غیرفعال">غیرفعال</option>
+      <label>نام<input type="text" formControlName="firstName" /></label>
+      <label>نام خانوادگی<input type="text" formControlName="lastName" /></label>
+      <label>شماره موبایل<input type="text" formControlName="phoneNumber" dir="ltr" placeholder="09123456789" /></label>
+      <label *ngIf="dialogMode === 'create'">رمز عبور اولیه<input type="password" formControlName="passwordHash" autocomplete="new-password" /></label>
+      <label>نقش
+        <select formControlName="roleName">
+          <option value="" disabled>انتخاب نقش</option>
+          <option *ngFor="let roleItem of roles; trackBy: trackById" [value]="roleItem.title">{{ roleItem.title }}</option>
         </select>
       </label>
-      <label>آخرین فعالیت<input type="text" formControlName="lastSeen" /></label>
+      <label>جنسیت
+        <select formControlName="gender">
+          <option [ngValue]="1">آقا</option>
+          <option [ngValue]="2">خانم</option>
+        </select>
+      </label>
+      <label *ngIf="dialogMode === 'create'">تاریخ تولد<input type="date" formControlName="birthDate" /></label>
+      <label>نام فایل تصویر پروفایل<input type="text" formControlName="avatarImageName" /></label>
+      <label>وضعیت حساب
+        <select formControlName="isActive">
+          <option [ngValue]="true">فعال</option>
+          <option [ngValue]="false">غیرفعال</option>
+        </select>
+      </label>
+      <label>تکمیل پروفایل
+        <select formControlName="isCompleteProfile">
+          <option [ngValue]="true">تکمیل شده</option>
+          <option [ngValue]="false">ناقص</option>
+        </select>
+      </label>
       <div class="dialog-actions">
         <button type="button" class="ghost-button" (click)="closeDialog()">انصراف</button>
         <button type="submit" class="primary-button" [disabled]="userForm.invalid || isDialogSubmitting">{{ isDialogSubmitting ? 'در حال ثبت...' : 'ثبت' }}</button>
