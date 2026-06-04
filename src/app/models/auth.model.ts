@@ -18,7 +18,7 @@ export interface AuthSession {
   isCompleteProfile: boolean;
 }
 
-export interface CompleteAdminProfileCommand {
+export interface CompleteConsultantProfileCommand {
   nationalCode: string;
   address: string;
 }
