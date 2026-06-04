@@ -4,6 +4,8 @@ export interface SidebarItem {
   key: string;
   label: string;
   icon: string;
+  route?: string;
+  roles?: string[];
 }
 
 @Component({

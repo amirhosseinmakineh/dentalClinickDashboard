@@ -37,7 +37,7 @@ interface RoleRow {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit, OnDestroy {
   isSidebarOpen = true;
   activeKey = 'users';
   isProfileSubmitting = false;
@@ -77,9 +77,9 @@ export class DashboardComponent {
   ];
 
   readonly roles: RoleRow[] = [
-    { title: 'مدیر سیستم', members: '۲ کاربر', scope: 'تمام بخش‌ها', access: 'کامل' },
-    { title: 'پذیرش', members: '۵ کاربر', scope: 'نوبت‌دهی و بیماران', access: 'عملیاتی' },
-    { title: 'پزشک', members: '۹ کاربر', scope: 'پرونده درمانی', access: 'تخصصی' },
+    { title: 'Admin', members: '۲ کاربر', scope: 'مدیریت کاربران، نقش‌ها و مشاوران', access: 'کامل' },
+    { title: 'Consultant', members: '۹ مشاور', scope: 'داشبورد مشاور و لیدهای اختصاص‌یافته', access: 'عملیاتی' },
+    { title: 'پذیرش', members: '۵ کاربر', scope: 'نوبت‌دهی و بیماران', access: 'محدود' },
     { title: 'مالی', members: '۳ کاربر', scope: 'پرداخت و فاکتور', access: 'محدود' }
   ];
 
@@ -124,11 +124,23 @@ export class DashboardComponent {
       return 'کنترل کاربران، وضعیت حساب‌ها و سطح فعالیت پرسنل کلینیک';
     }
 
-    if (this.activeKey === 'roles') {
-      return 'تعریف نقش‌ها، گروه‌های دسترسی و محدوده مجوزهای پنل';
+  setOnlineStatus(isOnline: boolean): void {
+    if (isOnline && this.pendingOfflineCount > 0) {
+      this.statusMessage = 'ابتدا لیدهای آفلاین خود را تعیین تکلیف کنید.';
+      return;
     }
 
-    return 'نمای کلی عملیات کلینیک، دسترسی‌ها، گزارش‌ها و وضعیت روزانه';
+    this.consultantProfileService.setOnlineStatus(isOnline).subscribe((result) => {
+      this.statusMessage = result.message;
+    });
+  }
+
+  selectItem(item: SidebarItem): void {
+    this.activeKey = item.key;
+
+    if (item.route) {
+      void this.router.navigateByUrl(item.route);
+    }
   }
 
   get roleLabel(): string {
