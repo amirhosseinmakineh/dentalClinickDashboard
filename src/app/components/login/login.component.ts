@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -9,15 +9,13 @@ import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-  readonly loginForm = this.formBuilder.group({
-    phoneNumber: ['', [Validators.required]],
-    passwordHash: ['', [Validators.required]]
-  });
+  loginForm!: FormGroup;
 
   isPasswordVisible = false;
   isSubmitting = false;
@@ -28,7 +26,12 @@ export class LoginComponent {
     private readonly authSession: AuthSessionService,
     private readonly router: Router,
     private readonly toastr: ToastrService
-  ) {}
+  ) {
+    this.loginForm = this.formBuilder.group({
+      phoneNumber: ['', [Validators.required]],
+      passwordHash: ['', [Validators.required]]
+    });
+  }
 
   submit(): void {
     if (this.loginForm.invalid || this.isSubmitting) {
@@ -45,22 +48,28 @@ export class LoginComponent {
         passwordHash: value.passwordHash
       })
       .pipe(finalize(() => (this.isSubmitting = false)))
-      .subscribe((result) => {
-        if (!result.isSuccess) {
-          this.toastr.error(result.message);
-          return;
+      .subscribe({
+        next: (result) => {
+          if (!result.isSuccess) {
+            this.toastr.error(result.message);
+            return;
+          }
+
+          const token = this.getToken(result.data);
+
+          if (!token) {
+            this.toastr.error(result.message || 'توکن ورود از سمت سرور دریافت نشد');
+            return;
+          }
+
+          const session = this.authSession.setToken(token);
+
+          this.toastr.success(result.message);
+          void this.router.navigate([session.role === 'admin' ? '/admin' : '/dashboard']);
+        },
+        error: () => {
+          this.toastr.error('خطا در ارتباط با سرور');
         }
-
-        const token = this.getToken(result.data);
-
-        if (!token) {
-          this.toastr.error(result.message);
-          return;
-        }
-
-        const session = this.authSession.setToken(token);
-        this.toastr.success(result.message);
-        void this.router.navigate([session.role === 'admin' ? '/admin' : '/dashboard']);
       });
   }
 
@@ -74,7 +83,12 @@ export class LoginComponent {
     }
 
     const response = data as Record<string, unknown>;
-    const token = response['token'] ?? response['accessToken'] ?? response['jwtToken'] ?? response['jwt'];
+
+    const token =
+      response['token'] ??
+      response['accessToken'] ??
+      response['jwtToken'] ??
+      response['jwt'];
 
     return typeof token === 'string' && token.trim() ? token : null;
   }

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -18,6 +18,7 @@ interface JalaliDay {
 
 @Component({
   selector: 'app-register',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
@@ -25,28 +26,22 @@ interface JalaliDay {
 export class RegisterComponent {
   readonly Gender = Gender;
   readonly weekDays = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+
   readonly genderOptions = [
     { label: 'آقا', value: Gender.Male },
     { label: 'خانم', value: Gender.Female }
   ];
 
-  readonly registerForm = this.formBuilder.group({
-    firstName: ['', [Validators.required, Validators.maxLength(100)]],
-    lastName: ['', [Validators.required, Validators.maxLength(100)]],
-    phoneNumber: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],
-    passwordHash: ['', [Validators.required, Validators.minLength(6)]],
-    isCompleteProfile: [false],
-    avatarImageName: [''],
-    gender: [Gender.Male, [Validators.required]],
-    birthDate: ['', [Validators.required]]
-  });
+  registerForm!: FormGroup;
 
   isSubmitting = false;
   isPasswordVisible = false;
   isDatepickerOpen = false;
+
   selectedJalaliDate = '';
   selectedAvatarName = '';
   selectedAvatarPreview = '';
+
   currentJalaliYear: number;
   currentJalaliMonth: number;
   calendarDays: Array<JalaliDay | null> = [];
@@ -68,12 +63,22 @@ export class RegisterComponent {
     private readonly authService: AuthService,
     private readonly toastr: ToastrService
   ) {
+    this.registerForm = this.formBuilder.group({
+      firstName: ['', [Validators.required, Validators.maxLength(100)]],
+      lastName: ['', [Validators.required, Validators.maxLength(100)]],
+      phoneNumber: ['', [Validators.required, Validators.pattern(/^09\d{9}$/)]],
+      passwordHash: ['', [Validators.required, Validators.minLength(6)]],
+      isCompleteProfile: [false],
+      avatarImageName: [''],
+      gender: [Gender.Male, [Validators.required]],
+      birthDate: ['', [Validators.required]]
+    });
+
     const today = this.getJalaliParts(new Date());
     this.currentJalaliYear = today.year;
     this.currentJalaliMonth = today.month;
     this.buildCalendar();
   }
-
 
   trackByGenderValue(_index: number, option: { value: Gender }): Gender {
     return option.value;
@@ -94,30 +99,38 @@ export class RegisterComponent {
     }
 
     this.isSubmitting = true;
+
     this.authService
       .register(this.createRegisterCommand())
       .pipe(finalize(() => (this.isSubmitting = false)))
-      .subscribe((result) => {
-        if (result.isSuccess) {
-          this.toastr.success(result.message);
-          this.registerForm.reset({
-            firstName: '',
-            lastName: '',
-            phoneNumber: '',
-            passwordHash: '',
-            isCompleteProfile: false,
-            avatarImageName: '',
-            gender: Gender.Male,
-            birthDate: ''
-          });
-          this.selectedJalaliDate = '';
-          this.selectedAvatarName = '';
-          this.selectedAvatarPreview = '';
-          this.buildCalendar();
-          return;
-        }
+      .subscribe({
+        next: (result) => {
+          if (result.isSuccess) {
+            this.toastr.success(result.message);
 
-        this.toastr.error(result.message);
+            this.registerForm.reset({
+              firstName: '',
+              lastName: '',
+              phoneNumber: '',
+              passwordHash: '',
+              isCompleteProfile: false,
+              avatarImageName: '',
+              gender: Gender.Male,
+              birthDate: ''
+            });
+
+            this.selectedJalaliDate = '';
+            this.selectedAvatarName = '';
+            this.selectedAvatarPreview = '';
+            this.buildCalendar();
+            return;
+          }
+
+          this.toastr.error(result.message);
+        },
+        error: () => {
+          this.toastr.error('خطا در ارتباط با سرور');
+        }
       });
   }
 
@@ -159,11 +172,13 @@ export class RegisterComponent {
       return;
     }
 
-    this.registerForm.controls.birthDate.setValue(day.isoDate);
-    this.registerForm.controls.birthDate.markAsTouched();
+    this.registerForm.controls['birthDate'].setValue(day.isoDate);
+    this.registerForm.controls['birthDate'].markAsTouched();
+
     this.selectedJalaliDate = `${this.toPersianNumber(this.currentJalaliYear)}/${this.toPersianNumber(
       this.currentJalaliMonth.toString().padStart(2, '0')
     )}/${this.toPersianNumber(day.day.toString().padStart(2, '0'))}`;
+
     this.isDatepickerOpen = false;
     this.buildCalendar();
   }
@@ -175,17 +190,19 @@ export class RegisterComponent {
     if (!file) {
       this.selectedAvatarName = '';
       this.selectedAvatarPreview = '';
-      this.registerForm.controls.avatarImageName.setValue('');
+      this.registerForm.controls['avatarImageName'].setValue('');
       return;
     }
 
     this.selectedAvatarName = file.name;
-    this.registerForm.controls.avatarImageName.setValue(file.name);
+    this.registerForm.controls['avatarImageName'].setValue(file.name);
 
     const reader = new FileReader();
+
     reader.onload = () => {
       this.selectedAvatarPreview = typeof reader.result === 'string' ? reader.result : '';
     };
+
     reader.readAsDataURL(file);
   }
 
@@ -210,11 +227,16 @@ export class RegisterComponent {
   }
 
   private buildCalendar(): void {
-    const monthDates = this.getGregorianDatesOfJalaliMonth(this.currentJalaliYear, this.currentJalaliMonth);
+    const monthDates = this.getGregorianDatesOfJalaliMonth(
+      this.currentJalaliYear,
+      this.currentJalaliMonth
+    );
+
     const firstDate = monthDates[0];
     const leadingEmptyDays = firstDate ? (firstDate.getDay() + 1) % 7 : 0;
     const todayIso = this.toIsoDate(new Date());
-    const selectedIso = this.registerForm.controls.birthDate.value;
+    const selectedIso = this.registerForm.controls['birthDate'].value;
+
     this.currentMonthTitle = firstDate
       ? this.jalaliMonthFormatter.format(firstDate)
       : `${this.currentJalaliYear}/${this.currentJalaliMonth}`;
@@ -241,8 +263,17 @@ export class RegisterComponent {
     const start = new Date(Date.UTC(year + 620, 0, 1));
     const end = new Date(Date.UTC(year + 622, 11, 31));
 
-    for (let cursor = new Date(start); cursor <= end; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
-      const localDate = new Date(cursor.getUTCFullYear(), cursor.getUTCMonth(), cursor.getUTCDate());
+    for (
+      let cursor = new Date(start);
+      cursor <= end;
+      cursor.setUTCDate(cursor.getUTCDate() + 1)
+    ) {
+      const localDate = new Date(
+        cursor.getUTCFullYear(),
+        cursor.getUTCMonth(),
+        cursor.getUTCDate()
+      );
+
       const parts = this.getJalaliParts(localDate);
 
       if (parts.year === year && parts.month === month) {
@@ -255,7 +286,9 @@ export class RegisterComponent {
 
   private getJalaliParts(date: Date): { year: number; month: number; day: number } {
     const parts = this.jalaliFormatter.formatToParts(date);
-    const getPart = (type: string) => Number(this.toEnglishNumber(parts.find((part) => part.type === type)?.value ?? '0'));
+
+    const getPart = (type: string): number =>
+      Number(this.toEnglishNumber(parts.find((part) => part.type === type)?.value ?? '0'));
 
     return {
       year: getPart('year'),

@@ -15,7 +15,7 @@ type ApiResultResponse<T> = ApiResult<T> & {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiBaseUrl = 'http://localhost:5001/api';
+  private readonly apiBaseUrl = 'http://localhost:5182/api';
 
   constructor(
     private readonly http: HttpClient,
