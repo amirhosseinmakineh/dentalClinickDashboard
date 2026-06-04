@@ -37,37 +37,37 @@ export const routes: Routes = [
   },
   {
     path: 'consultant/dashboard',
-    component: ConsultantDashboardComponent,
+    component: DashboardComponent,
     title: 'داشبورد مشاور',
     canActivate: [authGuard]
   },
   {
     path: 'consultant/my-leads',
-    component: ConsultantDashboardComponent,
+    component: DashboardComponent,
     title: 'لیدهای من',
     canActivate: [authGuard]
   },
   {
     path: 'consultant/realtime-leads',
-    component: ConsultantDashboardComponent,
+    component: DashboardComponent,
     title: 'لیدهای لحظه‌ای',
     canActivate: [authGuard]
   },
   {
     path: 'consultant/offline-queue',
-    component: ConsultantDashboardComponent,
+    component: DashboardComponent,
     title: 'صف لیدهای آفلاین',
     canActivate: [authGuard]
   },
   {
     path: 'consultant/notifications',
-    component: ConsultantDashboardComponent,
+    component: DashboardComponent,
     title: 'اعلان‌های مشاور',
     canActivate: [authGuard]
   },
   {
     path: 'consultant/profile',
-    component: ConsultantDashboardComponent,
+    component: DashboardComponent,
     title: 'پروفایل مشاور',
     canActivate: [authGuard]
   },

@@ -13,6 +13,9 @@
   <main class="dashboard-main">
     <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" (logout)="logout()" />
 
+    <app-consultant-dashboard *ngIf="role === 'consultant'; else adminDashboardContent" [activeKey]="activeKey" />
+
+    <ng-template #adminDashboardContent>
     <section class="content-canvas" aria-label="فضای محتوای اصلی">
       <div>
         <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
@@ -121,6 +124,7 @@
           </div>
       </section>
     </ng-container>
+    </ng-template>
   </main>
 </div>
 
