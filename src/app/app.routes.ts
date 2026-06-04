@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { MainLayoutComponent } from './components/main-layout/main-layout.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { ConsultantDashboardComponent } from './components/consultant-dashboard/consultant-dashboard.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { authGuard } from './guards/auth.guard';
@@ -30,8 +31,8 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    component: DashboardComponent,
-    title: 'داشبورد دلخند',
+    component: ConsultantDashboardComponent,
+    title: 'داشبورد مشاور دلخند',
     canActivate: [authGuard]
   },
   {
