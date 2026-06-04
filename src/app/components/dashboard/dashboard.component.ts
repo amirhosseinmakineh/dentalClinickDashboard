@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
+import { AdminRole, AdminUser, RoleCommandPayload, UserCommandPayload } from '../../models/admin-management.model';
 import { UserRole } from '../../models/auth.model';
 import { createPaginatedResult, PaginatedResult } from '../../models/paginated-result.model';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthService } from '../../services/auth.service';
+import { AdminManagementService } from '../../services/admin-management.service';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { SidebarComponent, SidebarItem } from '../sidebar/sidebar.component';
 
@@ -19,7 +21,7 @@ interface DashboardStat {
 }
 
 interface UserRow {
-  id: number;
+  id: number | string;
   name: string;
   role: string;
   phone: string;
@@ -28,7 +30,7 @@ interface UserRow {
 }
 
 interface RoleRow {
-  id: number;
+  id: number | string;
   title: string;
   members: string;
   scope: string;
@@ -56,10 +58,15 @@ interface DashboardDisplayPreference {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   isSidebarOpen = true;
   activeKey = 'users';
   isProfileSubmitting = false;
+  isDialogSubmitting = false;
+  isUsersLoading = false;
+  isRolesLoading = false;
+  userLoadError = '';
+  roleLoadError = '';
   role: UserRole = 'unknown';
   isCompleteProfile = true;
 
@@ -76,6 +83,7 @@ export class DashboardComponent {
 
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly adminManagementService = inject(AdminManagementService);
   private readonly authSession = inject(AuthSessionService);
   private readonly toastr = inject(ToastrService);
 
@@ -148,6 +156,13 @@ export class DashboardComponent {
     this.role = session?.role ?? 'unknown';
     this.isCompleteProfile = session?.isCompleteProfile ?? true;
     this.activeKey = this.role === 'consultant' ? 'appointments' : 'users';
+  }
+
+  ngOnInit(): void {
+    if (this.role !== 'consultant') {
+      this.loadUsers();
+      this.loadRoles();
+    }
   }
 
   get sidebarItems(): SidebarItem[] {
@@ -355,7 +370,7 @@ export class DashboardComponent {
     );
   }
 
-  trackById(_index: number, item: { id: number }): number {
+  trackById(_index: number, item: { id: number | string }): number | string {
     return item.id;
   }
 
@@ -377,11 +392,28 @@ export class DashboardComponent {
       return;
     }
 
+    if (this.isDialogSubmitting) {
+      return;
+    }
+
     if (this.dialogMode === 'delete' && this.selectedUser) {
-      this.users = this.users.filter((user) => user.id !== this.selectedUser?.id);
-      this.userPageNumber = Math.min(this.userPageNumber, Math.max(1, Math.ceil(this.users.length / this.userPageSize)));
-      this.toastr.success('کاربر در قالب دیالوگ حذف شد.');
-      this.closeDialog();
+      this.isDialogSubmitting = true;
+      const command = this.toUserCommand(this.selectedUser);
+
+      this.adminManagementService
+        .deleteUser(command)
+        .pipe(finalize(() => (this.isDialogSubmitting = false)))
+        .subscribe((result) => {
+          if (!result.isSuccess) {
+            this.toastr.error(result.message || 'حذف کاربر ناموفق بود.');
+            return;
+          }
+
+          this.users = this.users.filter((user) => user.id !== this.selectedUser?.id);
+          this.userPageNumber = Math.min(this.userPageNumber, Math.max(1, Math.ceil(this.users.length / this.userPageSize)));
+          this.toastr.success(result.message || 'کاربر حذف شد.');
+          this.closeDialog();
+        });
       return;
     }
 
@@ -394,11 +426,24 @@ export class DashboardComponent {
       status: value.status,
       lastSeen: value.lastSeen.trim()
     };
+    const command = this.toUserCommand(nextUser);
+    const request$ = this.dialogMode === 'edit' ? this.adminManagementService.updateUser(command) : this.adminManagementService.createUser(command);
 
-    this.users = this.dialogMode === 'edit' ? this.users.map((user) => (user.id === nextUser.id ? nextUser : user)) : [nextUser, ...this.users];
-    this.userPageNumber = 1;
-    this.toastr.success(this.dialogMode === 'edit' ? 'کاربر از داخل دیالوگ به‌روزرسانی شد.' : 'کاربر جدید از داخل دیالوگ اضافه شد.');
-    this.closeDialog();
+    this.isDialogSubmitting = true;
+    request$
+      .pipe(finalize(() => (this.isDialogSubmitting = false)))
+      .subscribe((result) => {
+        if (!result.isSuccess) {
+          this.toastr.error(result.message || 'ثبت اطلاعات کاربر ناموفق بود.');
+          return;
+        }
+
+        this.users = this.dialogMode === 'edit' ? this.users.map((user) => (user.id === nextUser.id ? nextUser : user)) : [nextUser, ...this.users];
+        this.userPageNumber = 1;
+        this.toastr.success(result.message || (this.dialogMode === 'edit' ? 'کاربر به‌روزرسانی شد.' : 'کاربر جدید ایجاد شد.'));
+        this.closeDialog();
+        this.loadUsers(false);
+      });
   }
 
   private submitRoleDialog(): void {
@@ -407,11 +452,28 @@ export class DashboardComponent {
       return;
     }
 
+    if (this.isDialogSubmitting) {
+      return;
+    }
+
     if (this.dialogMode === 'delete' && this.selectedRole) {
-      this.roles = this.roles.filter((role) => role.id !== this.selectedRole?.id);
-      this.rolePageNumber = Math.min(this.rolePageNumber, Math.max(1, Math.ceil(this.roles.length / this.rolePageSize)));
-      this.toastr.success('نقش در قالب دیالوگ حذف شد.');
-      this.closeDialog();
+      this.isDialogSubmitting = true;
+      const command = this.toRoleCommand(this.selectedRole);
+
+      this.adminManagementService
+        .deleteRole(command)
+        .pipe(finalize(() => (this.isDialogSubmitting = false)))
+        .subscribe((result) => {
+          if (!result.isSuccess) {
+            this.toastr.error(result.message || 'حذف نقش ناموفق بود.');
+            return;
+          }
+
+          this.roles = this.roles.filter((role) => role.id !== this.selectedRole?.id);
+          this.rolePageNumber = Math.min(this.rolePageNumber, Math.max(1, Math.ceil(this.roles.length / this.rolePageSize)));
+          this.toastr.success(result.message || 'نقش حذف شد.');
+          this.closeDialog();
+        });
       return;
     }
 
@@ -423,15 +485,129 @@ export class DashboardComponent {
       scope: value.scope.trim(),
       access: value.access.trim()
     };
+    const command = this.toRoleCommand(nextRole);
+    const request$ = this.dialogMode === 'edit' ? this.adminManagementService.updateRole(command) : this.adminManagementService.createRole(command);
 
-    this.roles = this.dialogMode === 'edit' ? this.roles.map((role) => (role.id === nextRole.id ? nextRole : role)) : [nextRole, ...this.roles];
-    this.rolePageNumber = 1;
-    this.toastr.success(this.dialogMode === 'edit' ? 'نقش از داخل دیالوگ به‌روزرسانی شد.' : 'نقش جدید از داخل دیالوگ ایجاد شد.');
-    this.closeDialog();
+    this.isDialogSubmitting = true;
+    request$
+      .pipe(finalize(() => (this.isDialogSubmitting = false)))
+      .subscribe((result) => {
+        if (!result.isSuccess) {
+          this.toastr.error(result.message || 'ثبت اطلاعات نقش ناموفق بود.');
+          return;
+        }
+
+        this.roles = this.dialogMode === 'edit' ? this.roles.map((role) => (role.id === nextRole.id ? nextRole : role)) : [nextRole, ...this.roles];
+        this.rolePageNumber = 1;
+        this.toastr.success(result.message || (this.dialogMode === 'edit' ? 'نقش به‌روزرسانی شد.' : 'نقش جدید ایجاد شد.'));
+        this.closeDialog();
+        this.loadRoles(false);
+      });
   }
 
-  private getNextId(rows: Array<{ id: number }>): number {
-    return rows.length ? Math.max(...rows.map((row) => row.id)) + 1 : 1;
+
+  private loadUsers(showLoading = true): void {
+    if (showLoading) {
+      this.isUsersLoading = true;
+    }
+
+    this.adminManagementService
+      .getUsers()
+      .pipe(finalize(() => (this.isUsersLoading = false)))
+      .subscribe((result) => {
+        if (!result.isSuccess) {
+          this.userLoadError = result.message || 'امکان دریافت کاربران از API پورت ۵۱۸۲ وجود ندارد.';
+          this.toastr.error(this.userLoadError);
+          return;
+        }
+
+        this.userLoadError = '';
+        this.users = (result.data ?? []).map((user, index) => this.toUserRow(user, index));
+        this.userPageNumber = 1;
+      });
+  }
+
+  private loadRoles(showLoading = true): void {
+    if (showLoading) {
+      this.isRolesLoading = true;
+    }
+
+    this.adminManagementService
+      .getRoles()
+      .pipe(finalize(() => (this.isRolesLoading = false)))
+      .subscribe((result) => {
+        if (!result.isSuccess) {
+          this.roleLoadError = result.message || 'امکان دریافت نقش‌ها از API پورت ۵۱۸۲ وجود ندارد.';
+          this.toastr.error(this.roleLoadError);
+          return;
+        }
+
+        this.roleLoadError = '';
+        this.roles = (result.data ?? []).map((role, index) => this.toRoleRow(role, index));
+        this.rolePageNumber = 1;
+      });
+  }
+
+  private toUserRow(user: AdminUser, index: number): UserRow {
+    const fullName = user.fullName ?? user.name ?? [user.firstName, user.lastName].filter(Boolean).join(' ');
+
+    return {
+      id: user.id ?? user.userId ?? index + 1,
+      name: fullName || 'کاربر بدون نام',
+      role: user.roleName ?? user.role ?? 'بدون نقش',
+      phone: user.phoneNumber ?? user.phone ?? '-',
+      status: user.status ?? 'فعال',
+      lastSeen: user.lastSeen ?? '-'
+    };
+  }
+
+  private toRoleRow(role: AdminRole, index: number): RoleRow {
+    return {
+      id: role.id ?? role.roleId ?? index + 1,
+      title: role.title ?? role.name ?? role.roleName ?? 'نقش بدون عنوان',
+      members: `${role.members ?? role.membersCount ?? '۰ کاربر'}`,
+      scope: role.scope ?? 'تعریف نشده',
+      access: role.access ?? 'محدود'
+    };
+  }
+
+  private toUserCommand(user: UserRow): UserCommandPayload {
+    const [firstName, ...lastNameParts] = user.name.trim().split(/\s+/);
+    const lastName = lastNameParts.join(' ');
+
+    return {
+      id: user.id,
+      userId: user.id,
+      firstName: firstName || user.name,
+      lastName,
+      fullName: user.name,
+      name: user.name,
+      role: user.role,
+      roleName: user.role,
+      phone: user.phone,
+      phoneNumber: user.phone,
+      status: user.status,
+      lastSeen: user.lastSeen
+    };
+  }
+
+  private toRoleCommand(role: RoleRow): RoleCommandPayload {
+    return {
+      id: role.id,
+      roleId: role.id,
+      title: role.title,
+      name: role.title,
+      roleName: role.title,
+      members: role.members,
+      membersCount: role.members,
+      scope: role.scope,
+      access: role.access
+    };
+  }
+
+  private getNextId(rows: Array<{ id: number | string }>): number {
+    const numericIds = rows.map((row) => Number(row.id)).filter((id) => Number.isFinite(id));
+    return numericIds.length ? Math.max(...numericIds) + 1 : 1;
   }
 
   private exportRows(format: ExportFormat, fileName: string, headers: string[], rows: string[][]): void {
