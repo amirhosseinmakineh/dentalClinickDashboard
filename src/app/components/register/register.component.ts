@@ -74,6 +74,19 @@ export class RegisterComponent {
     this.buildCalendar();
   }
 
+
+  trackByGenderValue(_index: number, option: { value: Gender }): Gender {
+    return option.value;
+  }
+
+  trackByText(_index: number, value: string): string {
+    return value;
+  }
+
+  trackByCalendarDay(index: number, day: JalaliDay | null): string {
+    return day?.isoDate ?? `empty-${index}`;
+  }
+
   submit(): void {
     if (this.registerForm.invalid || this.isSubmitting) {
       this.registerForm.markAllAsTouched();

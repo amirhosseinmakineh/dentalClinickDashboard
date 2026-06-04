@@ -12,11 +12,16 @@
   </div>
 
   <nav class="nav-list">
-    @for (item of items; track item.key) {
-      <button type="button" class="nav-item" [class.is-active]="activeKey === item.key" [title]="item.label" (click)="itemSelected.emit(item)">
-        <span class="material-symbols-outlined nav-icon" aria-hidden="true">{{ item.icon }}</span>
-        <span>{{ item.label }}</span>
-      </button>
-    }
+    <button
+      type="button"
+      class="nav-item"
+      *ngFor="let item of items; trackBy: trackByKey"
+      [class.is-active]="activeKey === item.key"
+      [title]="item.label"
+      (click)="itemSelected.emit(item)"
+    >
+      <span class="material-symbols-outlined nav-icon" aria-hidden="true">{{ item.icon }}</span>
+      <span>{{ item.label }}</span>
+    </button>
   </nav>
 </aside>
