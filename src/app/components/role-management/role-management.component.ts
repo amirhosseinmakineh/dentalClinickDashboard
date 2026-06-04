@@ -2,11 +2,8 @@ import { CommonModule } from "@angular/common";
 import {
   Component,
   EventEmitter,
-  Input,
-  OnChanges,
   OnInit,
   Output,
-  SimpleChanges,
   inject,
 } from "@angular/core";
 import {
@@ -27,16 +24,9 @@ import {
 } from "../../models/paginated-result.model";
 import { AdminManagementService } from "../../services/admin-management.service";
 
-export interface RoleUserSummary {
-  roleName: string;
-}
-
 export interface RoleRow {
   id: number | string;
-  title: string;
-  members: string;
-  scope: string;
-  access: string;
+  roleName: string;
 }
 
 type RoleDialogMode = "create" | "edit" | "delete";
@@ -48,8 +38,7 @@ type ExportFormat = "excel" | "pdf";
   templateUrl: "./role-management.component.html",
   styleUrl: "./role-management.component.scss",
 })
-export class RoleManagementComponent implements OnInit, OnChanges {
-  @Input() users: RoleUserSummary[] = [];
+export class RoleManagementComponent implements OnInit {
   @Output() rolesChanged = new EventEmitter<RoleRow[]>();
 
   isRolesLoading = false;
@@ -61,65 +50,18 @@ export class RoleManagementComponent implements OnInit, OnChanges {
 
   selectedRole: RoleRow | null = null;
   dialogMode: RoleDialogMode | null = null;
-
-  roles: RoleRow[] = [
-    {
-      id: 1,
-      title: "Admin",
-      members: "۲ کاربر",
-      scope: "مدیریت کاربران، نقش‌ها و مشاوران",
-      access: "کامل",
-    },
-    {
-      id: 2,
-      title: "Consultant",
-      members: "۹ مشاور",
-      scope: "داشبورد مشاور و لیدهای اختصاص‌یافته",
-      access: "عملیاتی",
-    },
-    {
-      id: 3,
-      title: "پذیرش",
-      members: "۵ کاربر",
-      scope: "نوبت‌دهی و بیماران",
-      access: "محدود",
-    },
-    {
-      id: 4,
-      title: "مالی",
-      members: "۳ کاربر",
-      scope: "پرداخت و فاکتور",
-      access: "محدود",
-    },
-    {
-      id: 5,
-      title: "بیمار",
-      members: "۲۴۸۰ کاربر",
-      scope: "داشبورد بیمار، نوبت‌ها و پرداخت‌ها",
-      access: "شخصی‌سازی‌شده",
-    },
-  ];
+  roles: RoleRow[] = [];
 
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly adminManagementService = inject(AdminManagementService);
   private readonly toastr = inject(ToastrService);
 
   readonly roleForm = this.formBuilder.group({
-    title: ["", [Validators.required, Validators.maxLength(80)]],
-    members: ["۰ کاربر", [Validators.required, Validators.maxLength(40)]],
-    scope: ["", [Validators.required, Validators.maxLength(220)]],
-    access: ["محدود", [Validators.required, Validators.maxLength(60)]],
+    roleName: ["", [Validators.required, Validators.maxLength(80)]],
   });
 
   ngOnInit(): void {
     this.loadRoles();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes["users"] && !changes["users"].firstChange) {
-      this.syncRoleMembersFromUsers();
-      this.emitRoles();
-    }
   }
 
   get rolePage(): PaginatedResult<RoleRow> {
@@ -151,19 +93,12 @@ export class RoleManagementComponent implements OnInit, OnChanges {
     this.selectedRole = role ?? null;
 
     if (mode === "create") {
-      this.roleForm.reset({
-        title: "",
-        members: "۰ کاربر",
-        scope: "",
-        access: "محدود",
-      });
-    } else if (role) {
-      this.roleForm.reset({
-        title: role.title,
-        members: role.members,
-        scope: role.scope,
-        access: role.access,
-      });
+      this.roleForm.reset({ roleName: "" });
+      return;
+    }
+
+    if (role) {
+      this.roleForm.reset({ roleName: role.roleName });
     }
   }
 
@@ -184,10 +119,9 @@ export class RoleManagementComponent implements OnInit, OnChanges {
 
     if (this.dialogMode === "delete" && this.selectedRole) {
       this.isDialogSubmitting = true;
-      const command = this.toRoleCommand(this.selectedRole);
 
       this.adminManagementService
-        .deleteRole(command)
+        .deleteRole(this.toRoleCommand(this.selectedRole))
         .pipe(finalize(() => (this.isDialogSubmitting = false)))
         .subscribe((result) => {
           if (!result.isSuccess) {
@@ -205,22 +139,19 @@ export class RoleManagementComponent implements OnInit, OnChanges {
           this.toastr.success(result.message || "نقش حذف شد.");
           this.closeDialog();
           this.emitRoles();
+          this.loadRoles(false);
         });
       return;
     }
 
-    const value = this.roleForm.getRawValue();
-    const nextRole: RoleRow = {
-      id: this.selectedRole?.id ?? this.getNextId(this.roles),
-      title: value.title.trim(),
-      members: value.members.trim(),
-      scope: value.scope.trim(),
-      access: value.access.trim(),
-    };
+    const roleName = this.roleForm.controls.roleName.value.trim();
+    const command: RoleCommandPayload = this.selectedRole
+      ? { id: this.selectedRole.id, roleName }
+      : { roleName };
     const request$ =
       this.dialogMode === "edit"
-        ? this.adminManagementService.updateRole(this.toRoleCommand(nextRole))
-        : this.adminManagementService.createRole(this.toRoleCommand(nextRole));
+        ? this.adminManagementService.updateRole(command)
+        : this.adminManagementService.createRole(command);
 
     this.isDialogSubmitting = true;
     request$
@@ -231,13 +162,12 @@ export class RoleManagementComponent implements OnInit, OnChanges {
           return;
         }
 
-        this.roles =
-          this.dialogMode === "edit"
-            ? this.roles.map((role) =>
-                role.id === nextRole.id ? nextRole : role,
-              )
-            : [nextRole, ...this.roles];
-        this.syncRoleMembersFromUsers();
+        if (this.dialogMode === "edit" && this.selectedRole) {
+          this.roles = this.roles.map((role) =>
+            role.id === this.selectedRole?.id ? { ...role, roleName } : role,
+          );
+        }
+
         this.rolePageNumber = 1;
         this.toastr.success(
           result.message ||
@@ -264,13 +194,8 @@ export class RoleManagementComponent implements OnInit, OnChanges {
     this.exportRows(
       format,
       "roles",
-      ["نقش", "اعضا", "محدوده دسترسی", "سطح مجوز"],
-      this.roles.map((role) => [
-        role.title,
-        role.members,
-        role.scope,
-        role.access,
-      ]),
+      ["شناسه", "نام نقش"],
+      this.roles.map((role) => [`${role.id}`, role.roleName]),
     );
   }
 
@@ -304,61 +229,23 @@ export class RoleManagementComponent implements OnInit, OnChanges {
         this.roles = (result.data ?? []).map((role, index) =>
           this.toRoleRow(role, index),
         );
-        this.syncRoleMembersFromUsers();
         this.rolePageNumber = 1;
         this.emitRoles();
       });
   }
 
   private toRoleRow(role: AdminRole, index: number): RoleRow {
-    const title = role.title ?? role.name ?? role.roleName ?? "نقش بدون عنوان";
-
     return {
       id: role.id ?? role.roleId ?? index + 1,
-      title,
-      members: `${role.members ?? role.membersCount ?? this.getRoleMembersLabel(title)}`,
-      scope: role.scope ?? "تعریف نشده",
-      access: role.access ?? "محدود",
+      roleName: role.roleName?.trim() || "نقش بدون نام",
     };
   }
 
   private toRoleCommand(role: RoleRow): RoleCommandPayload {
     return {
       id: role.id,
-      roleId: role.id,
-      title: role.title,
-      name: role.title,
-      roleName: role.title,
-      members: role.members,
-      membersCount: role.members,
-      scope: role.scope,
-      access: role.access,
+      roleName: role.roleName,
     };
-  }
-
-  private syncRoleMembersFromUsers(): void {
-    if (!this.users.length) {
-      return;
-    }
-
-    this.roles = this.roles.map((role) => ({
-      ...role,
-      members: this.getRoleMembersLabel(role.title),
-    }));
-  }
-
-  private getRoleMembersLabel(roleName: string): string {
-    const count = this.users.filter(
-      (user) => user.roleName === roleName,
-    ).length;
-    return `${count} کاربر`;
-  }
-
-  private getNextId(items: Array<{ id: number | string }>): number {
-    const numericIds = items
-      .map((item) => Number(item.id))
-      .filter((id) => Number.isFinite(id));
-    return numericIds.length ? Math.max(...numericIds) + 1 : 1;
   }
 
   private exportRows(
