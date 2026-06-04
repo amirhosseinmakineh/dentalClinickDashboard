@@ -39,9 +39,6 @@
         <div>
           <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
           <h2>{{ role === 'consultant' ? 'داشبورد مشاور' : 'داشبورد ادمین' }}</h2>
-          <p>
-            {{ role === 'consultant' ? 'امکانات قابل مشاهده مطابق نقش مشاور محدود شده است.' : 'امکانات مدیریتی ادمین از روی نقش موجود در توکن فعال شده است.' }}
-          </p>
         </div>
       </section>
 
@@ -62,7 +59,6 @@
             <div>
               <p class="eyebrow">User Management</p>
               <h2 id="users-title">مدیریت کاربران</h2>
-              <p>افزودن، ویرایش، تغییر نقش و حذف کاربر مطابق قراردادهای User بک‌اند روی پورت ۵۱۸۲ انجام می‌شود.</p>
             </div>
             <div class="panel-actions">
               <button type="button" class="ghost-button" (click)="exportUsers('excel')">خروجی اکسل</button>
@@ -125,7 +121,6 @@
             <div>
               <p class="eyebrow">Role Management</p>
               <h2 id="roles-title">مدیریت نقش ها</h2>
-              <p>ایجاد، ویرایش و حذف نقش از طریق API مدیریت نقش‌ها روی پورت ۵۱۸۲ انجام می‌شود و جدول نقش‌ها خروجی اکسل و PDF دارد.</p>
             </div>
             <div class="panel-actions">
               <button type="button" class="ghost-button" (click)="exportRoles('excel')">خروجی اکسل</button>
@@ -188,50 +183,11 @@
           </div>
         </section>
 
-        <section *ngSwitchCase="'settings'" class="management-panel" aria-labelledby="display-settings-title">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Dashboard Display Policy</p>
-              <h2 id="display-settings-title">تنظیم نمایش دسکتاپ و موبایل</h2>
-              <p>ادمین می‌تواند برای داشبورد ادمین، مشاور، بیمار، منشی و هر نقش آینده، چیدمان دسکتاپ و موبایل را جداگانه مشخص کند.</p>
-            </div>
-          </div>
-
-          <div class="display-policy-grid">
-            <article class="display-policy-card" *ngFor="let preference of displayPreferences; trackBy: trackByPreference">
-              <div>
-                <span class="material-symbols-outlined" aria-hidden="true">devices</span>
-                <h3>{{ preference.audienceLabel }}</h3>
-                <p>ویجت پیش‌فرض: {{ preference.defaultWidget }} | تراکم جدول: {{ preference.tableDensity }}</p>
-              </div>
-              <label>
-                نمایش روی سیستم
-                <select [value]="preference.desktopLayout" (change)="updateDisplayPreference(preference.audience, 'desktop', $event)">
-                  <option value="سایدبار کامل + جدول‌های مدیریتی">سایدبار کامل + جدول‌های مدیریتی</option>
-                  <option value="کارت‌های تحلیلی + جدول تمام‌عرض">کارت‌های تحلیلی + جدول تمام‌عرض</option>
-                  <option value="لیدهای اولویت‌دار + گزارش مشاوره">لیدهای اولویت‌دار + گزارش مشاوره</option>
-                  <option value="تقویم روزانه + جدول بیماران">تقویم روزانه + جدول بیماران</option>
-                </select>
-              </label>
-              <label>
-                نمایش روی موبایل
-                <select [value]="preference.mobileLayout" (change)="updateDisplayPreference(preference.audience, 'mobile', $event)">
-                  <option value="کارت‌های فشرده + اکشن‌های چسبان">کارت‌های فشرده + اکشن‌های چسبان</option>
-                  <option value="صف لیدها + تایمر تمام‌عرض">صف لیدها + تایمر تمام‌عرض</option>
-                  <option value="کارت نوبت بعدی + پرونده خلاصه">کارت نوبت بعدی + پرونده خلاصه</option>
-                  <option value="لیست نوبت‌های امروز">لیست نوبت‌های امروز</option>
-                </select>
-              </label>
-            </article>
-          </div>
-        </section>
-
-        <section *ngSwitchDefault class="management-panel" aria-labelledby="overview-title">
+        <section *ngSwitchCase="'overview'" class="management-panel" aria-labelledby="overview-title">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">{{ role === 'consultant' ? 'Consultant Access' : 'Clinic Overview' }}</p>
               <h2 id="overview-title">{{ role === 'consultant' ? 'امکانات مشاور' : 'نمای کلی داشبورد' }}</h2>
-              <p>{{ role === 'consultant' ? 'در این بخش فقط ابزارهای مربوط به مشاور نمایش داده می‌شود.' : 'این صفحه برای تکمیل ماژول‌های بعدی آماده شده و ساختار اصلی داشبورد را حفظ می‌کند.' }}</p>
             </div>
           </div>
 
@@ -277,8 +233,53 @@
           <option [ngValue]="2">خانم</option>
         </select>
       </label>
-      <label *ngIf="dialogMode === 'create'">تاریخ تولد<input type="date" formControlName="birthDate" /></label>
-      <label>نام فایل تصویر پروفایل<input type="text" formControlName="avatarImageName" /></label>
+      <label *ngIf="dialogMode === 'create'" class="date-field" (click)="$event.stopPropagation()">تاریخ تولد
+        <button class="dialog-date-button" type="button" (click)="toggleDatepicker($event)" [attr.aria-expanded]="isDatepickerOpen" aria-haspopup="dialog">
+          <span [class.date-value--placeholder]="!selectedJalaliDate">{{ selectedJalaliDate || 'انتخاب تاریخ شمسی' }}</span>
+          <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+        </button>
+        <input type="hidden" formControlName="birthDate" />
+        <div *ngIf="isDatepickerOpen" class="jalali-datepicker" role="dialog" aria-label="انتخاب تاریخ تولد شمسی">
+          <div class="datepicker-header">
+            <button type="button" (click)="previousMonth()" aria-label="ماه قبل">
+              <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </button>
+            <strong>{{ currentMonthTitle }}</strong>
+            <button type="button" (click)="nextMonth()" aria-label="ماه بعد">
+              <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+            </button>
+          </div>
+          <div class="weekday-grid" aria-hidden="true">
+            <span *ngFor="let dayName of weekDays; trackBy: trackByValue">{{ dayName }}</span>
+          </div>
+          <div class="day-grid">
+            <button
+              *ngFor="let day of calendarDays; trackBy: trackByCalendarDay"
+              type="button"
+              [class.day-cell--empty]="!day"
+              [class.day-cell--today]="day?.isToday"
+              [class.day-cell--selected]="day?.isSelected"
+              [disabled]="!day"
+              (click)="selectDate(day, $event)"
+            >
+              {{ day?.label }}
+            </button>
+          </div>
+        </div>
+      </label>
+      <label>تصویر پروفایل
+        <span class="avatar-upload">
+          <span class="avatar-preview" aria-hidden="true">
+            <img *ngIf="selectedAvatarPreview; else avatarPlaceholder" [src]="selectedAvatarPreview" alt="" />
+            <ng-template #avatarPlaceholder>
+              <span class="material-symbols-outlined">add_a_photo</span>
+            </ng-template>
+          </span>
+          <span class="avatar-upload__text">{{ selectedAvatarName || 'انتخاب تصویر' }}</span>
+          <input class="file-input" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
+        </span>
+        <input type="hidden" formControlName="avatarImageName" />
+      </label>
       <label>وضعیت حساب
         <select formControlName="isActive">
           <option [ngValue]="true">فعال</option>

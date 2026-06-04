@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -46,16 +46,13 @@ interface RoleRow {
 type DialogEntity = 'user' | 'role';
 type DialogMode = 'create' | 'edit' | 'delete';
 type ExportFormat = 'excel' | 'pdf';
-type DashboardAudience = 'admin' | 'consultant' | 'patient' | 'receptionist' | 'secretary';
-type DashboardDevice = 'desktop' | 'mobile';
 
-interface DashboardDisplayPreference {
-  audience: DashboardAudience;
-  audienceLabel: string;
-  desktopLayout: string;
-  mobileLayout: string;
-  defaultWidget: string;
-  tableDensity: string;
+interface JalaliDay {
+  day: number;
+  label: string;
+  isoDate: string;
+  isToday: boolean;
+  isSelected: boolean;
 }
 
 @Component({
@@ -66,7 +63,7 @@ interface DashboardDisplayPreference {
 })
 export class DashboardComponent implements OnInit {
   isSidebarOpen = true;
-  activeKey = 'users';
+  activeKey = 'overview';
   isProfileSubmitting = false;
   isDialogSubmitting = false;
   isUsersLoading = false;
@@ -81,6 +78,15 @@ export class DashboardComponent implements OnInit {
   readonly pageSizeOptions = [3, 5, 10];
   userPageSize = 3;
   rolePageSize = 3;
+  readonly weekDays = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+  isDatepickerOpen = false;
+  selectedJalaliDate = '';
+  selectedAvatarName = '';
+  selectedAvatarPreview = '';
+  currentJalaliYear: number;
+  currentJalaliMonth: number;
+  currentMonthTitle = '';
+  calendarDays: Array<JalaliDay | null> = [];
 
   dialogEntity: DialogEntity | null = null;
   dialogMode: DialogMode | null = null;
@@ -92,6 +98,17 @@ export class DashboardComponent implements OnInit {
   private readonly adminManagementService = inject(AdminManagementService);
   private readonly authSession = inject(AuthSessionService);
   private readonly toastr = inject(ToastrService);
+
+  private readonly jalaliFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  });
+
+  private readonly jalaliMonthFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+    year: 'numeric',
+    month: 'long'
+  });
 
   readonly profileForm = this.formBuilder.group({
     nationalCode: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
@@ -119,11 +136,11 @@ export class DashboardComponent implements OnInit {
   });
 
   private readonly adminSidebarItems: SidebarItem[] = [
+    { key: 'overview', label: 'نمای کلی', icon: 'dashboard' },
     { key: 'users', label: 'مدیریت کاربران', icon: 'group' },
     { key: 'roles', label: 'مدیریت نقش ها', icon: 'admin_panel_settings' },
     { key: 'appointments', label: 'نوبت‌ها', icon: 'calendar_month' },
-    { key: 'reports', label: 'گزارش‌ها', icon: 'monitoring' },
-    { key: 'settings', label: 'تنظیمات نمایش داشبورد', icon: 'dashboard_customize' }
+    { key: 'reports', label: 'گزارش‌ها', icon: 'monitoring' }
   ];
 
   private readonly consultantSidebarItems: SidebarItem[] = [
@@ -148,19 +165,15 @@ export class DashboardComponent implements OnInit {
     { id: 5, title: 'بیمار', members: '۲۴۸۰ کاربر', scope: 'داشبورد بیمار، نوبت‌ها و پرداخت‌ها', access: 'شخصی‌سازی‌شده' }
   ];
 
-  displayPreferences: DashboardDisplayPreference[] = [
-    { audience: 'admin', audienceLabel: 'ادمین', desktopLayout: 'سایدبار کامل + جدول‌های مدیریتی', mobileLayout: 'کارت‌های فشرده + اکشن‌های چسبان', defaultWidget: 'مدیریت کاربران', tableDensity: 'معمولی' },
-    { audience: 'consultant', audienceLabel: 'مشاور', desktopLayout: 'لیدهای اولویت‌دار + گزارش مشاوره', mobileLayout: 'صف لیدها + تایمر تمام‌عرض', defaultWidget: 'نوبت‌ها', tableDensity: 'فشرده' },
-    { audience: 'patient', audienceLabel: 'بیمار', desktopLayout: 'پرونده درمان + پرداخت‌ها', mobileLayout: 'کارت نوبت بعدی + پرونده خلاصه', defaultWidget: 'نوبت بعدی', tableDensity: 'راحت' },
-    { audience: 'receptionist', audienceLabel: 'منشی / پذیرش', desktopLayout: 'تقویم روزانه + جدول بیماران', mobileLayout: 'لیست نوبت‌های امروز', defaultWidget: 'تقویم', tableDensity: 'معمولی' },
-    { audience: 'secretary', audienceLabel: 'دبیرخانه', desktopLayout: 'درخواست‌ها + وظایف اداری', mobileLayout: 'کارت وظایف فوری', defaultWidget: 'وظایف فوری', tableDensity: 'فشرده' }
-  ];
-
   constructor() {
     const session = this.authSession.getSession();
     this.role = session?.role ?? 'unknown';
     this.isCompleteProfile = session?.isCompleteProfile ?? true;
-    this.activeKey = this.role === 'consultant' ? 'appointments' : 'users';
+    const today = this.getJalaliParts(new Date());
+    this.currentJalaliYear = today.year;
+    this.currentJalaliMonth = today.month;
+    this.activeKey = this.role === 'consultant' ? 'appointments' : 'overview';
+    this.buildCalendar();
   }
 
   ngOnInit(): void {
@@ -195,19 +208,7 @@ export class DashboardComponent implements OnInit {
       return 'دسترسی شما محدود به امکانات مشاور است.';
     }
 
-    if (this.activeKey === 'users') {
-      return 'کنترل کاربران، وضعیت حساب‌ها و سطح فعالیت پرسنل کلینیک';
-    }
-
-    if (this.activeKey === 'roles') {
-      return 'تعریف نقش‌ها، مجوزها و محدوده دسترسی تمام داشبوردها';
-    }
-
-    if (this.activeKey === 'settings') {
-      return 'انتخاب نحوه نمایش داشبورد روی دسکتاپ و موبایل برای نقش‌های فعلی و آینده';
-    }
-
-    return 'نمای کلی عملیات کلینیک';
+    return '';
   }
 
   get roleLabel(): string {
@@ -305,6 +306,10 @@ export class DashboardComponent implements OnInit {
         gender: Gender.Male,
         birthDate: ''
       });
+      this.selectedAvatarName = '';
+      this.selectedAvatarPreview = '';
+      this.selectedJalaliDate = '';
+      this.buildCalendar();
     } else if (user) {
       this.userForm.reset({
         firstName: user.firstName,
@@ -318,6 +323,10 @@ export class DashboardComponent implements OnInit {
         gender: user.gender,
         birthDate: user.birthDate
       });
+      this.selectedAvatarName = user.avatarImageName;
+      this.selectedAvatarPreview = '';
+      this.selectedJalaliDate = user.birthDate ? this.formatJalaliDisplayDate(user.birthDate) : '';
+      this.buildCalendar();
     }
   }
 
@@ -338,6 +347,10 @@ export class DashboardComponent implements OnInit {
     this.dialogMode = null;
     this.selectedUser = null;
     this.selectedRole = null;
+    this.isDatepickerOpen = false;
+    this.selectedAvatarName = '';
+    this.selectedAvatarPreview = '';
+    this.selectedJalaliDate = '';
   }
 
   submitDialog(): void {
@@ -369,15 +382,74 @@ export class DashboardComponent implements OnInit {
     this.rolePageNumber = 1;
   }
 
-  updateDisplayPreference(audience: DashboardAudience, device: DashboardDevice, event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    this.displayPreferences = this.displayPreferences.map((preference) => {
-      if (preference.audience !== audience) {
-        return preference;
-      }
+  toggleDatepicker(event: MouseEvent): void {
+    event.stopPropagation();
+    this.isDatepickerOpen = !this.isDatepickerOpen;
+  }
 
-      return device === 'desktop' ? { ...preference, desktopLayout: value } : { ...preference, mobileLayout: value };
-    });
+  previousMonth(): void {
+    if (this.currentJalaliMonth === 1) {
+      this.currentJalaliMonth = 12;
+      this.currentJalaliYear -= 1;
+    } else {
+      this.currentJalaliMonth -= 1;
+    }
+
+    this.buildCalendar();
+  }
+
+  nextMonth(): void {
+    if (this.currentJalaliMonth === 12) {
+      this.currentJalaliMonth = 1;
+      this.currentJalaliYear += 1;
+    } else {
+      this.currentJalaliMonth += 1;
+    }
+
+    this.buildCalendar();
+  }
+
+  selectDate(day: JalaliDay | null, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (!day) {
+      return;
+    }
+
+    this.userForm.controls.birthDate.setValue(day.isoDate);
+    this.userForm.controls.birthDate.markAsTouched();
+    this.selectedJalaliDate = this.formatJalaliDisplayDate(day.isoDate);
+    this.isDatepickerOpen = false;
+    this.buildCalendar();
+  }
+
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      this.selectedAvatarName = '';
+      this.selectedAvatarPreview = '';
+      this.userForm.controls.avatarImageName.setValue('');
+      return;
+    }
+
+    this.selectedAvatarName = file.name;
+    this.userForm.controls.avatarImageName.setValue(file.name);
+    this.userForm.controls.avatarImageName.markAsTouched();
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.selectedAvatarPreview = typeof reader.result === 'string' ? reader.result : '';
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  @HostListener('document:click')
+  closeDatepicker(): void {
+    this.isDatepickerOpen = false;
   }
 
   exportUsers(format: ExportFormat): void {
@@ -406,12 +478,12 @@ export class DashboardComponent implements OnInit {
     return item.label;
   }
 
-  trackByPreference(_index: number, item: DashboardDisplayPreference): DashboardAudience {
-    return item.audience;
-  }
-
   trackByValue(_index: number, value: number | string): number | string {
     return value;
+  }
+
+  trackByCalendarDay(index: number, day: JalaliDay | null): string {
+    return day?.isoDate ?? `empty-${index}`;
   }
 
   private submitUserDialog(): void {
@@ -711,6 +783,97 @@ export class DashboardComponent implements OnInit {
 
   private normalizeGender(gender: Gender | number | null | undefined): Gender {
     return Number(gender) === Gender.Female ? Gender.Female : Gender.Male;
+  }
+
+  private buildCalendar(): void {
+    const monthDates = this.getGregorianDatesOfJalaliMonth(
+      this.currentJalaliYear,
+      this.currentJalaliMonth
+    );
+    const firstDate = monthDates[0];
+    const leadingEmptyDays = firstDate ? (firstDate.getDay() + 1) % 7 : 0;
+    const todayIso = this.toIsoDate(new Date());
+    const selectedIso = this.userForm.controls.birthDate.value;
+
+    this.currentMonthTitle = firstDate
+      ? this.jalaliMonthFormatter.format(firstDate)
+      : `${this.currentJalaliYear}/${this.currentJalaliMonth}`;
+
+    this.calendarDays = [
+      ...Array<JalaliDay | null>(leadingEmptyDays).fill(null),
+      ...monthDates.map((date) => {
+        const parts = this.getJalaliParts(date);
+        const isoDate = this.toIsoDate(date);
+
+        return {
+          day: parts.day,
+          label: this.toPersianNumber(parts.day),
+          isoDate,
+          isToday: isoDate === todayIso,
+          isSelected: isoDate === selectedIso
+        };
+      })
+    ];
+  }
+
+  private getGregorianDatesOfJalaliMonth(year: number, month: number): Date[] {
+    const dates: Date[] = [];
+    const start = new Date(Date.UTC(year + 620, 0, 1));
+    const end = new Date(Date.UTC(year + 622, 11, 31));
+
+    for (let cursor = new Date(start); cursor <= end; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
+      const localDate = new Date(
+        cursor.getUTCFullYear(),
+        cursor.getUTCMonth(),
+        cursor.getUTCDate()
+      );
+      const parts = this.getJalaliParts(localDate);
+
+      if (parts.year === year && parts.month === month) {
+        dates.push(localDate);
+      }
+    }
+
+    return dates;
+  }
+
+  private getJalaliParts(date: Date): { year: number; month: number; day: number } {
+    const parts = this.jalaliFormatter.formatToParts(date);
+    const getPart = (type: string): number =>
+      Number(this.toEnglishNumber(parts.find((part) => part.type === type)?.value ?? '0'));
+
+    return {
+      year: getPart('year'),
+      month: getPart('month'),
+      day: getPart('day')
+    };
+  }
+
+  private formatJalaliDisplayDate(isoDate: string): string {
+    const date = new Date(`${isoDate}T00:00:00`);
+    const parts = this.getJalaliParts(date);
+
+    return `${this.toPersianNumber(parts.year)}/${this.toPersianNumber(parts.month.toString().padStart(2, '0'))}/${this.toPersianNumber(
+      parts.day.toString().padStart(2, '0')
+    )}`;
+  }
+
+  private toIsoDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private toPersianNumber(value: string | number): string {
+    return value.toString().replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
+  }
+
+  private toEnglishNumber(value: string): string {
+    return value
+      .replace(/[۰-۹]/g, (digit) => `${'۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)}`)
+      .replace(/[٠-٩]/g, (digit) => `${'٠١٢٣٤٥٦٧٨٩'.indexOf(digit)}`);
   }
 
   private getNextId(rows: Array<{ id: number | string }>): number {

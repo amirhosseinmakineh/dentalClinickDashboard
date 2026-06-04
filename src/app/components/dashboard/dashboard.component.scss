@@ -623,8 +623,7 @@
 .dialog-form input,
 .dialog-form textarea,
 .dialog-form select,
-.pagination-bar select,
-.display-policy-card select {
+.pagination-bar select {
   width: 100%;
   border: 1px solid var(--dashboard-border);
   border-radius: 0.85rem;
@@ -728,32 +727,6 @@
   color: var(--dashboard-muted);
 }
 
-.display-policy-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.display-policy-card {
-  display: grid;
-  gap: 0.85rem;
-  padding: 1rem;
-  border: 1px solid rgba(211, 196, 184, 0.62);
-  border-radius: 1.15rem;
-  background: linear-gradient(135deg, #fff, rgba(246, 234, 223, 0.55));
-}
-
-.display-policy-card h3,
-.display-policy-card p {
-  margin: 0;
-}
-
-.display-policy-card .material-symbols-outlined {
-  color: var(--dashboard-primary);
-  font-size: 2rem;
-}
-
-.display-policy-card label,
 .dialog-form label {
   display: grid;
   gap: 0.4rem;
@@ -840,8 +813,7 @@
 
 @media (max-width: 1100px) {
   .data-table--users .table-row,
-  .data-table--roles .table-row,
-  .display-policy-grid {
+  .data-table--roles .table-row {
     grid-template-columns: 1fr;
   }
 }
@@ -860,4 +832,141 @@
   .dialog-actions button {
     width: 100%;
   }
+}
+
+.date-field {
+  position: relative;
+}
+
+.dialog-date-button {
+  width: 100%;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  background: #fff;
+  color: var(--dashboard-text);
+  cursor: pointer;
+  font: inherit;
+  text-align: right;
+}
+
+.date-value--placeholder {
+  color: var(--dashboard-muted);
+}
+
+.jalali-datepicker {
+  position: absolute;
+  inset-inline-start: 0;
+  top: calc(100% + 0.45rem);
+  z-index: 5;
+  width: min(100%, 20rem);
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 1rem 2rem rgba(26, 28, 26, 0.14);
+}
+
+.datepicker-header,
+.weekday-grid,
+.day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.datepicker-header {
+  grid-template-columns: auto 1fr auto;
+}
+
+.datepicker-header strong {
+  text-align: center;
+}
+
+.datepicker-header button,
+.day-grid button {
+  min-height: 2rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--dashboard-cream-soft);
+  color: var(--dashboard-primary-dark);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.weekday-grid span {
+  text-align: center;
+  color: var(--dashboard-muted);
+  font-weight: 900;
+}
+
+.day-grid .day-cell--today {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.day-grid .day-cell--selected {
+  background: var(--dashboard-primary);
+  color: #fff;
+}
+
+.day-grid .day-cell--empty {
+  cursor: default;
+  opacity: 0;
+}
+
+.avatar-upload {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 4.5rem;
+  padding: 0.65rem;
+  border: 1px dashed var(--dashboard-border);
+  border-radius: 0.95rem;
+  cursor: pointer;
+}
+
+.avatar-preview {
+  width: 3.2rem;
+  height: 3.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 999rem;
+  background: var(--dashboard-cream-soft);
+  color: var(--dashboard-primary);
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-upload__text {
+  overflow: hidden;
+  color: var(--dashboard-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
