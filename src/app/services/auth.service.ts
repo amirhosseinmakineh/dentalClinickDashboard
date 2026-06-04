@@ -13,12 +13,12 @@ type ApiResultResponse<T> = ApiResult<T> & {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiBaseUrl = 'http://localhost:5001/api';
+  private readonly apiBaseUrl = 'http://localhost:5182/api';
 
   constructor(private readonly http: HttpClient) {}
 
   register(command: RegisterCommand): Observable<ApiResult<object>> {
-    return this.http.post<ApiResultResponse<object>>(`${this.apiBaseUrl}/Auth/Register`, command).pipe(
+    return this.http.post<ApiResultResponse<object>>(`${this.apiBaseUrl}/Auth`, command).pipe(
       map((response) => this.normalizeResult(response)),
       catchError((error: HttpErrorResponse) => of(this.toFailureResult(error)))
     );
