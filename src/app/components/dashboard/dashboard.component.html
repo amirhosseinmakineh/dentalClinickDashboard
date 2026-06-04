@@ -4,7 +4,7 @@
     [isOpen]="isSidebarOpen"
     [activeKey]="activeKey"
     title="دل‌خند"
-    subtitle="پنل مدیریت کلینیک"
+    subtitle="پنل مدیریت لید"
     (toggleSidebar)="toggleSidebar()"
     (closeSidebar)="closeSidebar()"
     (itemSelected)="selectItem($event)"
@@ -13,30 +13,244 @@
   <main class="dashboard-main">
     <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" />
 
-    <section class="content-canvas" aria-label="فضای محتوای اصلی">
-      <div>
-        <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
-        <h2>CONTENT</h2>
-        <p>
-          این بخش عمداً خالی نگه داشته شده تا محتوای اختصاصی دسترسی‌ها و گزارش‌ها به صورت جداگانه و قابل کنترل نمایش داده شود.
-        </p>
-      </div>
-    </section>
-
-    <section class="stats-grid" aria-label="شاخص‌های کلیدی کلینیک">
-      @for (stat of stats; track stat.label) {
-        <article class="stat-card">
-          <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
-          <div>
-            <p>{{ stat.label }}</p>
-            <strong>{{ stat.value }}</strong>
-            <small>{{ stat.trend }}</small>
+    @if (activeKey === 'users' || activeKey === 'roles' || activeKey === 'consultants') {
+      <section class="admin-access-banner" aria-label="دسترسی ادمین">
+        <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+        <div>
+          <strong>بخش ادمین</strong>
+          <p>آیتم‌های مدیریت کاربران، مدیریت نقش‌ها و مدیریت مشاوران فقط برای نقش Admin در توکن نمایش داده می‌شوند.</p>
+        </div>
+      </section>
+    } @else {
+      <section class="consultant-status-panel" aria-labelledby="consultant-status-title">
+        <div class="status-card status-card--profile">
+          <p class="eyebrow">Consultant Status</p>
+          <h2 id="consultant-status-title">وضعیت فعلی مشاور</h2>
+          <div class="status-pills">
+            <span [class.is-success]="profile?.isPresent" [class.is-danger]="!profile?.isPresent">
+              {{ profile?.isPresent ? 'حاضر' : 'عدم حضور' }}
+            </span>
+            <span [class.is-success]="profile?.isOnline" [class.is-muted]="!profile?.isOnline">
+              {{ profile?.isOnline ? 'آنلاین' : 'آفلاین' }}
+            </span>
           </div>
-        </article>
-      }
-    </section>
+          @if (statusMessage) {
+            <p class="status-message">{{ statusMessage }}</p>
+          }
+        </div>
 
-    @if (activeKey === 'users') {
+        <div class="status-actions" aria-label="تغییر وضعیت مشاور">
+          <button type="button" class="primary-button" (click)="setPresentStatus(true)">حضور دارم</button>
+          <button type="button" class="ghost-button" (click)="setPresentStatus(false)">حضور ندارم</button>
+          <button type="button" class="success-button" [disabled]="pendingOfflineCount > 0 || !profile?.isPresent" (click)="setOnlineStatus(true)">
+            آنلاین هستم
+          </button>
+          <button type="button" class="warning-button" (click)="setOnlineStatus(false)">آفلاین هستم</button>
+        </div>
+      </section>
+
+      @if (pendingOfflineCount > 0) {
+        <section class="queue-warning" role="alert">
+          <span class="material-symbols-outlined" aria-hidden="true">priority_high</span>
+          <p>ابتدا لیدهای آفلاین خود را تعیین تکلیف کنید. {{ pendingOfflineCount }} لید در صف آفلاین شما Pending است.</p>
+        </section>
+      }
+
+      <section class="stats-grid" aria-label="شاخص‌های داشبورد مشاور">
+        @for (stat of stats; track stat.label) {
+          <article class="stat-card">
+            <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
+            <div>
+              <p>{{ stat.label }}</p>
+              <strong>{{ stat.value }}</strong>
+              <small>{{ stat.trend }}</small>
+            </div>
+          </article>
+        }
+      </section>
+    }
+
+    @if (activeKey === 'consultant-dashboard') {
+      <section class="management-panel priority-panel" aria-labelledby="priority-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Realtime Priority</p>
+            <h2 id="priority-title">اولویت امروز: لیدهای لحظه‌ای</h2>
+            <p>RealTime فقط برای مشاوری نمایش داده می‌شود که هم حاضر و هم آنلاین باشد و قانون تماس سه دقیقه‌ای دارد.</p>
+          </div>
+          <button type="button" class="primary-button" (click)="activeKey = 'realtime-leads'">مشاهده لیدهای لحظه‌ای</button>
+        </div>
+        <div class="lead-grid">
+          @for (lead of realTimeLeads.slice(0, 2); track lead.id) {
+            <article class="lead-card lead-card--realtime" [class.is-expired]="remainingMilliseconds(lead) === 0 || lead.status === 'Expired'">
+              <div class="lead-card__header">
+                <span>{{ leadTypeLabel(lead.type) }}</span>
+                <strong>{{ statusLabel(lead.status) }}</strong>
+              </div>
+              <h3>{{ lead.leadName }}</h3>
+              <p dir="ltr">{{ lead.phoneNumber }}</p>
+              <div class="timer" aria-label="تایمر تماس سه دقیقه‌ای">{{ remainingLabel(lead) }}</div>
+              <small>{{ lead.note }}</small>
+            </article>
+          }
+        </div>
+      </section>
+    } @else if (activeKey === 'my-leads') {
+      <section class="management-panel" aria-labelledby="my-leads-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">My Leads</p>
+            <h2 id="my-leads-title">لیدهای من</h2>
+            <p>لیست همه لیدهای assign شده به مشاور با فیلتر نوع لید و وضعیت.</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <label>
+            نوع لید
+            <select [(ngModel)]="leadTypeFilter">
+              <option value="All">همه</option>
+              <option value="RealTime">RealTime</option>
+              <option value="OfflineQueue">OfflineQueue</option>
+            </select>
+          </label>
+          <label>
+            وضعیت
+            <select [(ngModel)]="leadStatusFilter">
+              <option value="All">همه</option>
+              <option value="Pending">Pending</option>
+              <option value="Assigned">Assigned</option>
+              <option value="Expired">Expired</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="lead-grid">
+          @for (lead of filteredMyLeads; track lead.id) {
+            <article class="lead-card" [class.lead-card--realtime]="lead.type === 'RealTime'" [class.lead-card--offline]="lead.type === 'OfflineQueue'" [class.is-expired]="lead.status === 'Expired'">
+              <div class="lead-card__header">
+                <span>{{ leadTypeLabel(lead.type) }}</span>
+                <strong>{{ statusLabel(lead.status) }}</strong>
+              </div>
+              <h3>{{ lead.leadName }}</h3>
+              <p dir="ltr">{{ lead.phoneNumber }}</p>
+              <small>ثبت: {{ lead.createdAt | date: 'HH:mm - yyyy/MM/dd' }}</small>
+              <small>Assign: {{ lead.assignedAt | date: 'HH:mm - yyyy/MM/dd' }}</small>
+              @if (lead.type === 'RealTime') {
+                <div class="timer">{{ remainingLabel(lead) }}</div>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    } @else if (activeKey === 'realtime-leads') {
+      <section class="management-panel" aria-labelledby="realtime-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">RealTime Leads</p>
+            <h2 id="realtime-title">لیدهای لحظه‌ای</h2>
+            <p>هر کارت تایمر معکوس سه دقیقه‌ای و هشدار پایان زمان دارد.</p>
+          </div>
+        </div>
+        <div class="lead-grid lead-grid--priority">
+          @for (lead of realTimeLeads; track lead.id) {
+            <article class="lead-card lead-card--realtime" [class.is-expired]="remainingMilliseconds(lead) === 0 || lead.status === 'Expired'">
+              <div class="lead-card__header">
+                <span>RealTime</span>
+                <strong>{{ statusLabel(lead.status) }}</strong>
+              </div>
+              <h3>{{ lead.leadName }}</h3>
+              <p dir="ltr">{{ lead.phoneNumber }}</p>
+              <div class="timer timer--large">{{ remainingLabel(lead) }}</div>
+              @if (remainingMilliseconds(lead) === 0 || lead.status === 'Expired') {
+                <p class="expired-alert">زمان تماس سه دقیقه‌ای تمام شد.</p>
+              } @else {
+                <p class="positive-alert">SMS و Notification برای مشاور ارسال شده است.</p>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    } @else if (activeKey === 'offline-queue') {
+      <section class="management-panel" aria-labelledby="offline-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Offline Queue</p>
+            <h2 id="offline-title">صف لیدهای آفلاین</h2>
+            <p>این لیدها قانون سه دقیقه، SMS فوری و Notification فوری ندارند و قبل از آنلاین شدن باید بررسی شوند.</p>
+          </div>
+        </div>
+        <div class="lead-grid">
+          @for (lead of offlineQueueLeads; track lead.id) {
+            <article class="lead-card lead-card--offline">
+              <div class="lead-card__header">
+                <span>OfflineQueue</span>
+                <strong>{{ statusLabel(lead.status) }}</strong>
+              </div>
+              <h3>{{ lead.leadName }}</h3>
+              <p dir="ltr">{{ lead.phoneNumber }}</p>
+              <small>زمان ثبت لید: {{ lead.createdAt | date: 'HH:mm - yyyy/MM/dd' }}</small>
+              <small>زمان assign: {{ lead.assignedAt | date: 'HH:mm - yyyy/MM/dd' }}</small>
+              <p>{{ lead.note }}</p>
+            </article>
+          }
+        </div>
+      </section>
+    } @else if (activeKey === 'notifications') {
+      <section class="management-panel" aria-labelledby="notifications-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Notifications</p>
+            <h2 id="notifications-title">اعلان‌ها</h2>
+            <p>{{ unreadNotificationsCount }} اعلان خوانده‌نشده دارید.</p>
+          </div>
+        </div>
+        <div class="notification-list">
+          @for (notification of notifications; track notification.id) {
+            <article class="notification-card" [class.is-unread]="!notification.isRead">
+              <span class="material-symbols-outlined" aria-hidden="true">{{ notification.isRead ? 'drafts' : 'mark_email_unread' }}</span>
+              <div>
+                <h3>{{ notification.title }}</h3>
+                <p>{{ notification.message }}</p>
+                <small>{{ notification.createdAt | date: 'HH:mm - yyyy/MM/dd' }}</small>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    } @else if (activeKey === 'profile') {
+      <section class="management-panel profile-panel" aria-labelledby="profile-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">My Profile</p>
+            <h2 id="profile-title">پروفایل من</h2>
+            <p>اطلاعات پروفایل، تکمیل بودن، فعال بودن، حضور و آنلاین بودن مشاور.</p>
+          </div>
+        </div>
+        <div class="profile-grid">
+          <article>
+            <span class="material-symbols-outlined" aria-hidden="true">badge</span>
+            <p>نام مشاور</p>
+            <strong>{{ profile?.fullName }}</strong>
+          </article>
+          <article>
+            <span class="material-symbols-outlined" aria-hidden="true">phone</span>
+            <p>شماره تماس</p>
+            <strong dir="ltr">{{ profile?.phoneNumber }}</strong>
+          </article>
+          <article>
+            <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+            <p>تکمیل پروفایل</p>
+            <strong>{{ profile?.profileCompletionPercent }}٪</strong>
+          </article>
+          <article>
+            <span class="material-symbols-outlined" aria-hidden="true">toggle_on</span>
+            <p>فعال بودن</p>
+            <strong>{{ profile?.isActive ? 'فعال' : 'غیرفعال' }}</strong>
+          </article>
+        </div>
+      </section>
+    } @else if (activeKey === 'users') {
       <section class="management-panel" aria-labelledby="users-title">
         <div class="panel-heading">
           <div>
@@ -49,24 +263,7 @@
             <button type="button" class="primary-button">افزودن کاربر</button>
           </div>
         </div>
-
-        <div class="toolbar">
-          <label>
-            <span class="material-symbols-outlined" aria-hidden="true">search</span>
-            <input type="search" placeholder="جستجوی نام، نقش یا شماره تماس" />
-          </label>
-          <button type="button">فیلتر وضعیت</button>
-          <button type="button">مرتب‌سازی</button>
-        </div>
-
         <div class="data-table" role="table" aria-label="جدول کاربران">
-          <div class="table-row table-head" role="row">
-            <span role="columnheader">کاربر</span>
-            <span role="columnheader">نقش</span>
-            <span role="columnheader">شماره تماس</span>
-            <span role="columnheader">وضعیت</span>
-            <span role="columnheader">آخرین فعالیت</span>
-          </div>
           @for (user of users; track user.phone) {
             <div class="table-row" role="row">
               <span role="cell">{{ user.name }}</span>
@@ -84,67 +281,32 @@
           <div>
             <p class="eyebrow">Role Management</p>
             <h2 id="roles-title">مدیریت نقش ها</h2>
-            <p>نقش‌ها را تعریف کنید، محدوده دسترسی را ببینید و برای هر گروه سطح مجوز مشخص کنید.</p>
-          </div>
-          <div class="panel-actions">
-            <button type="button" class="ghost-button">بازبینی دسترسی‌ها</button>
-            <button type="button" class="primary-button">ایجاد نقش</button>
+            <p>نقش Admin برای بخش مدیریت و نقش Consultant برای داشبورد مشاور استفاده می‌شود.</p>
           </div>
         </div>
-
         <div class="role-grid">
           @for (role of roles; track role.title) {
             <article class="role-card">
-              <div class="role-icon">
-                <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
-              </div>
+              <div class="role-icon"><span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span></div>
               <h3>{{ role.title }}</h3>
               <p>{{ role.scope }}</p>
-              <div class="role-meta">
-                <span>{{ role.members }}</span>
-                <strong>{{ role.access }}</strong>
-              </div>
+              <div class="role-meta"><span>{{ role.members }}</span><strong>{{ role.access }}</strong></div>
             </article>
           }
         </div>
-
-        <div class="permission-matrix">
-          <h3>ماتریس دسترسی سریع</h3>
-          <div class="permission-row">
-            <span>مشاهده پرونده بیمار</span>
-            <b>مدیر، پزشک، پذیرش</b>
-          </div>
-          <div class="permission-row">
-            <span>ویرایش پرداخت‌ها</span>
-            <b>مدیر، مالی</b>
-          </div>
-          <div class="permission-row">
-            <span>گزارش‌های مدیریتی</span>
-            <b>فقط مدیر سیستم</b>
-          </div>
-        </div>
       </section>
-    } @else {
-      <section class="management-panel" aria-labelledby="overview-title">
+    } @else if (activeKey === 'consultants') {
+      <section class="management-panel" aria-labelledby="consultants-title">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Clinic Overview</p>
-            <h2 id="overview-title">نمای کلی داشبورد</h2>
-            <p>این صفحه برای تکمیل ماژول‌های بعدی آماده شده و ساختار اصلی داشبورد را حفظ می‌کند.</p>
+            <p class="eyebrow">Consultant Management</p>
+            <h2 id="consultants-title">مدیریت مشاوران</h2>
+            <p>کنترل وضعیت حضور، آنلاین بودن و توزیع برابر OfflineQueue بین مشاورهای حاضر.</p>
           </div>
         </div>
-
         <div class="overview-grid">
-          <article>
-            <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-            <h3>کارهای امروز</h3>
-            <p>۱۲ پیگیری درمان، ۸ تایید نوبت و ۴ پیام جدید بیماران.</p>
-          </article>
-          <article>
-            <span class="material-symbols-outlined" aria-hidden="true">insights</span>
-            <h3>روند کلینیک</h3>
-            <p>نرخ تکمیل درمان‌ها و رضایت بیماران در حال رشد است.</p>
-          </article>
+          <article><span class="material-symbols-outlined">support_agent</span><h3>مشاورهای حاضر</h3><p>پایه تقسیم صف آفلاین</p></article>
+          <article><span class="material-symbols-outlined">online_prediction</span><h3>مشاورهای آنلاین</h3><p>آماده دریافت RealTime</p></article>
         </div>
       </section>
     }
