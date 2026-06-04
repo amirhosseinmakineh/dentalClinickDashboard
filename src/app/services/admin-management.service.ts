@@ -64,15 +64,15 @@ export class AdminManagementService {
       catchError((error: HttpErrorResponse) => of(this.toFailureResult<object>(error)))
     );
   }
-
-  getRoles(): Observable<ApiResult<AdminRole[]>> {
-    return this.http.get<ApiResultResponse<AdminRole[]> | AdminRole[] | CollectionEnvelope<AdminRole>>(`${this.apiBaseUrl}/Role`, {
-      headers: this.getAuthorizationHeaders()
-    }).pipe(
-      map((response) => this.normalizeCollectionResult(response)),
-      catchError((error: HttpErrorResponse) => of(this.toFailureResult<AdminRole[]>(error)))
-    );
-  }
+getRoles(): Observable<ApiResult<AdminRole[]>> {
+  return this.http.get<ApiResultResponse<AdminRole[]> | AdminRole[] | CollectionEnvelope<AdminRole>>(
+    `${this.apiBaseUrl}/Role`,
+    { headers: this.getAuthorizationHeaders() }
+  ).pipe(
+    map((response) => this.normalizeCollectionResult(response)),
+    catchError((error: HttpErrorResponse) => of(this.toFailureResult<AdminRole[]>(error)))
+  );
+}
 
   createRole(command: RoleCommandPayload): Observable<ApiResult<object>> {
     return this.http.post<ApiResultResponse<object>>(`${this.apiBaseUrl}/Role`, command, {

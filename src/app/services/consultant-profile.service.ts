@@ -15,7 +15,6 @@ type ApiResultResponse<T> = ApiResult<T> & {
 
 @Injectable({ providedIn: 'root' })
 export class ConsultantProfileService {
-  private readonly apiBaseUrl = 'http://localhost:5001/api';
   private readonly dentalApiBaseUrl = 'http://localhost:5182/api';
   private readonly profileSubject = new BehaviorSubject<ConsultantProfile>({
     id: 'current-consultant',
@@ -45,7 +44,7 @@ export class ConsultantProfileService {
 
   setPresentStatus(isPresent: boolean): Observable<ApiResult<ConsultantProfile>> {
     return this.http
-      .post<ApiResultResponse<ConsultantProfile>>(`${this.apiBaseUrl}/consultant-profile/present-status`, { isPresent })
+      .post<ApiResultResponse<ConsultantProfile>>(`${this.dentalApiBaseUrl}/consultant-profile/present-status`, { isPresent })
       .pipe(
         map((response) => this.normalizeResult(response)),
         tap((result) => {
@@ -59,7 +58,7 @@ export class ConsultantProfileService {
 
   setOnlineStatus(isOnline: boolean): Observable<ApiResult<ConsultantProfile>> {
     return this.http
-      .post<ApiResultResponse<ConsultantProfile>>(`${this.apiBaseUrl}/consultant-profile/online-status`, { isOnline })
+      .post<ApiResultResponse<ConsultantProfile>>(`${this.dentalApiBaseUrl}/consultant-profile/online-status`, { isOnline })
       .pipe(
         map((response) => this.normalizeResult(response)),
         tap((result) => {
