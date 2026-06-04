@@ -1,104 +1,80 @@
-<section *ngIf="requiresProfileCompletion; else consultantContent" class="profile-completion-panel" aria-labelledby="profile-completion-title">
-  <div class="profile-completion-card">
-    <span class="material-symbols-outlined" aria-hidden="true">lock_person</span>
-    <h2 id="profile-completion-title">تکمیل پروفایل مشاور</h2>
-    <p>تا زمانی که کد ملی و آدرس پروفایل مشاور ثبت نشود، هیچ بخشی از داشبورد فعال نخواهد بود.</p>
+<section class="consultant-status-page" dir="rtl" aria-labelledby="consultant-status-title">
+  <header class="status-hero">
+    <div>
+      <p class="eyebrow">Consultant Status</p>
+      <h2 id="consultant-status-title">مدیریت وضعیت مشاور</h2>
+      <p>در این صفحه فقط وضعیت حضور و آنلاین/آفلاین بودن شما ثبت می‌شود.</p>
+    </div>
+    <span class="material-symbols-outlined" aria-hidden="true">support_agent</span>
+  </header>
 
-    <form [formGroup]="profileForm" (ngSubmit)="submitConsultantProfile()">
-      <label for="consultant-national-code">کد ملی</label>
-      <input id="consultant-national-code" formControlName="nationalCode" type="text" inputmode="numeric" maxlength="10" placeholder="0012345678" />
+  <div class="status-grid">
+    <article class="status-card" [class.is-active]="statusState.isAvailable">
+      <div class="status-card__header">
+        <span class="material-symbols-outlined" aria-hidden="true">how_to_reg</span>
+        <div>
+          <h3>وضعیت حضور</h3>
+          <p>{{ statusState.isAvailable ? 'حاضر هستید' : 'حضور ثبت نشده' }}</p>
+        </div>
+      </div>
 
-      <label for="consultant-address">آدرس</label>
-      <textarea id="consultant-address" formControlName="address" rows="4" placeholder="آدرس کامل"></textarea>
+      <div class="status-badge" [class.status-badge--success]="statusState.isAvailable">
+        {{ statusState.isAvailable ? 'حاضر هستید' : 'حضور ثبت نشده' }}
+      </div>
 
-      <button class="primary-button" type="submit" [disabled]="profileForm.invalid || isProfileSubmitting">
-        {{ isProfileSubmitting ? 'در حال ثبت...' : 'ثبت و فعال‌سازی داشبورد' }}
-      </button>
-    </form>
+      <div class="status-actions">
+        <button
+          type="button"
+          class="success-button"
+          [disabled]="statusState.isSubmittingAvailable || statusState.isAvailable"
+          (click)="setAvailable(true)"
+        >
+          {{ statusState.isSubmittingAvailable ? 'در حال ثبت...' : 'حضور دارم' }}
+        </button>
+        <button
+          type="button"
+          class="ghost-button"
+          [disabled]="statusState.isSubmittingAvailable || !statusState.isAvailable"
+          (click)="setAvailable(false)"
+        >
+          {{ statusState.isSubmittingAvailable ? 'در حال ثبت...' : 'حضور ندارم' }}
+        </button>
+      </div>
+    </article>
+
+    <article class="status-card" [class.is-active]="statusState.isOnline">
+      <div class="status-card__header">
+        <span class="material-symbols-outlined" aria-hidden="true">wifi_tethering</span>
+        <div>
+          <h3>وضعیت دریافت لید</h3>
+          <p>{{ statusState.isOnline ? 'آنلاین هستید' : 'آفلاین هستید' }}</p>
+        </div>
+      </div>
+
+      <div class="status-badge" [class.status-badge--success]="statusState.isOnline">
+        {{ statusState.isOnline ? 'آنلاین هستید' : 'آفلاین هستید' }}
+      </div>
+
+      <p class="status-hint" *ngIf="!statusState.isAvailable">برای آنلاین شدن ابتدا باید حضور خود را ثبت کنید.</p>
+
+      <div class="status-actions">
+        <button
+          type="button"
+          class="success-button"
+          [disabled]="statusState.isSubmittingOnline || statusState.isOnline || !statusState.isAvailable"
+          (click)="setOnlineOffline(true)"
+        >
+          {{ statusState.isSubmittingOnline ? 'در حال ثبت...' : 'آنلاین هستم' }}
+        </button>
+        <button
+          type="button"
+          class="ghost-button"
+          [disabled]="statusState.isSubmittingOnline || !statusState.isOnline"
+          (click)="setOnlineOffline(false)"
+        >
+          {{ statusState.isSubmittingOnline ? 'در حال ثبت...' : 'آفلاین هستم' }}
+        </button>
+      </div>
+    </article>
   </div>
 </section>
-
-<ng-template #consultantContent>
-  <section class="content-canvas" aria-label="فضای محتوای مشاور">
-    <div>
-      <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
-      <h2>داشبورد مشاور</h2>
-    </div>
-  </section>
-
-  <section *ngIf="isInitialView" class="consultant-status-panel" aria-label="وضعیت سریع مشاور">
-    <article class="status-card">
-      <p class="eyebrow">Consultant Status</p>
-      <h2>وضعیت امروز مشاور</h2>
-      <p>این کنترل‌ها فعلاً فقط برای نمایش رابط کاربری هستند.</p>
-    </article>
-
-    <div class="status-actions" aria-label="کنترل‌های حضور و آنلاین بودن">
-      <label class="status-check">
-        <input type="checkbox" />
-        <span class="status-check__box" aria-hidden="true"></span>
-        <span>تیک حضور</span>
-      </label>
-      <label class="status-check">
-        <input type="checkbox" />
-        <span class="status-check__box" aria-hidden="true"></span>
-        <span>آنلاین / آفلاین</span>
-      </label>
-    </div>
-  </section>
-
-  <section *ngIf="isInitialView" class="stats-grid" aria-label="شاخص‌های مشاور">
-    <article class="stat-card" *ngFor="let stat of stats; trackBy: trackByLabel">
-      <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
-      <div>
-        <p>{{ stat.label }}</p>
-        <strong>{{ stat.value }}</strong>
-        <small>{{ stat.trend }}</small>
-      </div>
-    </article>
-  </section>
-
-  <ng-container [ngSwitch]="activeKey">
-    <section *ngSwitchCase="'consultant-dashboard'" class="management-panel" aria-labelledby="consultant-overview-title">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Consultant Access</p>
-          <h2 id="consultant-overview-title">نمای اولیه مشاور</h2>
-        </div>
-      </div>
-
-      <div class="overview-grid">
-        <article>
-          <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-          <h3>کارهای امروز</h3>
-          <p>۱۲ پیگیری درمان، ۸ تایید نوبت و ۴ پیام جدید بیماران.</p>
-        </article>
-        <article>
-          <span class="material-symbols-outlined" aria-hidden="true">insights</span>
-          <h3>روند مشاوره</h3>
-          <p>پیگیری‌های مشاور و وضعیت پاسخ‌گویی در حال بهبود است.</p>
-        </article>
-      </div>
-    </section>
-
-    <section *ngSwitchCase="'appointments'" class="management-panel" aria-labelledby="consultant-appointments-title">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Appointments</p>
-          <h2 id="consultant-appointments-title">نوبت‌ها</h2>
-        </div>
-      </div>
-      <p class="status-message">نمای نوبت‌های مشاور آماده اتصال به API است.</p>
-    </section>
-
-    <section *ngSwitchCase="'reports'" class="management-panel" aria-labelledby="consultant-reports-title">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Reports</p>
-          <h2 id="consultant-reports-title">گزارش مشاوره</h2>
-        </div>
-      </div>
-      <p class="status-message">گزارش‌های مشاور آماده اتصال به API است.</p>
-    </section>
-  </ng-container>
-</ng-template>

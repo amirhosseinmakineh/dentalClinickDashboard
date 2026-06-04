@@ -120,9 +120,7 @@ export class DashboardComponent implements OnInit {
 
 
   private readonly consultantSidebarItems: SidebarItem[] = [
-    { key: 'consultant-dashboard', label: 'داشبورد مشاور', icon: 'dashboard', componentName: 'app-consultant-dashboard' },
-    { key: 'appointments', label: 'نوبت‌ها', icon: 'calendar_month', componentName: 'app-consultant-dashboard' },
-    { key: 'reports', label: 'گزارش مشاوره', icon: 'monitoring', componentName: 'app-consultant-dashboard' }
+    { key: 'consultant-dashboard', label: 'داشبورد مشاور', icon: 'dashboard', componentName: 'app-consultant-dashboard' }
   ];
 
   readonly stats: DashboardStat[] = [

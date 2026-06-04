@@ -1,98 +1,93 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, inject } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject } from '@angular/core';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
+import { ConsultantStatusState } from '../../models/consultant-status.model';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { ConsultantProfileService } from '../../services/consultant-profile.service';
-
-interface ConsultantStat {
-  label: string;
-  value: string;
-  trend: string;
-  icon: string;
-}
+import { ConsultantStatusService } from '../../services/consultant-status.service';
 
 @Component({
   selector: 'app-consultant-dashboard',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule],
   templateUrl: './consultant-dashboard.component.html',
   styleUrl: './consultant-dashboard.component.scss'
 })
 export class ConsultantDashboardComponent {
-  @Input() activeKey = 'consultant-dashboard';
-
-  isProfileSubmitting = false;
-  isCompleteProfile = true;
-
-  private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly authSession = inject(AuthSessionService);
-  private readonly consultantProfileService = inject(ConsultantProfileService);
+  private readonly consultantStatusService = inject(ConsultantStatusService);
   private readonly toastr = inject(ToastrService);
 
-  readonly profileForm = this.formBuilder.group({
-    nationalCode: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-    address: ['', [Validators.required, Validators.maxLength(500)]]
-  });
+  statusState: ConsultantStatusState = {
+    profileId: this.authSession.getSession()?.profileId ?? 1,
+    isAvailable: false,
+    isOnline: false,
+    isSubmittingAvailable: false,
+    isSubmittingOnline: false
+  };
 
-  readonly stats: ConsultantStat[] = [
-    { label: 'نوبت‌های امروز', value: '۳۶', trend: '۸ نوبت در انتظار تایید', icon: 'event_available' },
-    { label: 'پیگیری‌های فعال', value: '۱۲', trend: '۴ پیام جدید بیماران', icon: 'task_alt' },
-    { label: 'لیدهای آنلاین', value: '۸', trend: 'آماده تماس اولیه', icon: 'support_agent' },
-    { label: 'صف آفلاین', value: '۵', trend: 'نیازمند بررسی مشاور', icon: 'schedule' }
-  ];
-
-  constructor() {
-    const session = this.authSession.getSession();
-    this.isCompleteProfile = session?.isCompleteProfile ?? true;
-  }
-
-  get requiresProfileCompletion(): boolean {
-    return !this.isCompleteProfile;
-  }
-
-  get isInitialView(): boolean {
-    return this.activeKey === 'consultant-dashboard';
-  }
-
-  submitConsultantProfile(): void {
-    if (this.profileForm.invalid || this.isProfileSubmitting) {
-      this.profileForm.markAllAsTouched();
+  setAvailable(isAvailable: boolean): void {
+    if (this.statusState.isSubmittingAvailable) {
       return;
     }
 
-    const session = this.authSession.getSession();
+    this.statusState = {
+      ...this.statusState,
+      isSubmittingAvailable: true
+    };
 
-    if (!session?.userId) {
-      this.toastr.error('شناسه کاربر برای تکمیل پروفایل در توکن یافت نشد.');
-      return;
-    }
-
-    const value = this.profileForm.getRawValue();
-    this.isProfileSubmitting = true;
-
-    this.consultantProfileService
-      .completeProfile({
-        UserId: session.userId,
-        NationalityCode: value.nationalCode.trim(),
-        Address: value.address.trim(),
-        IsCompleteProfile: true
+    this.consultantStatusService
+      .setAvailable({
+        profileId: this.statusState.profileId,
+        isAvailable
       })
-      .pipe(finalize(() => (this.isProfileSubmitting = false)))
+      .pipe(finalize(() => (this.statusState = { ...this.statusState, isSubmittingAvailable: false })))
       .subscribe((result) => {
         if (!result.isSuccess) {
-          this.toastr.error(result.message || 'تکمیل پروفایل مشاور ناموفق بود.');
+          this.toastr.error(result.message || 'ثبت وضعیت حضور ناموفق بود.');
           return;
         }
 
-        this.authSession.markProfileCompleted();
-        this.isCompleteProfile = true;
-        this.toastr.success(result.message || 'پروفایل مشاور تکمیل شد.');
+        this.statusState = {
+          ...this.statusState,
+          isAvailable,
+          isOnline: isAvailable ? this.statusState.isOnline : false
+        };
+        this.toastr.success(result.message || 'وضعیت حضور ثبت شد.');
       });
   }
 
-  trackByLabel(_index: number, item: { label: string }): string {
-    return item.label;
+  setOnlineOffline(isOnline: boolean): void {
+    if (this.statusState.isSubmittingOnline || (isOnline && !this.statusState.isAvailable)) {
+      return;
+    }
+
+    this.statusState = {
+      ...this.statusState,
+      isSubmittingOnline: true
+    };
+
+    this.consultantStatusService
+      .setOnlineOffline({
+        profileId: this.statusState.profileId,
+        isOnline
+      })
+      .pipe(finalize(() => (this.statusState = { ...this.statusState, isSubmittingOnline: false })))
+      .subscribe((result) => {
+        if (!result.isSuccess) {
+          this.statusState = {
+            ...this.statusState,
+            isOnline: isOnline ? false : this.statusState.isOnline
+          };
+          this.toastr.error(result.message || 'ثبت وضعیت آنلاین/آفلاین ناموفق بود.');
+          return;
+        }
+
+        this.statusState = {
+          ...this.statusState,
+          isOnline
+        };
+        this.toastr.success(result.message || 'وضعیت دریافت لید ثبت شد.');
+      });
   }
 }
