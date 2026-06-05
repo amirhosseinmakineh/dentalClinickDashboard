@@ -8,7 +8,7 @@ import { AuthSessionService } from './auth-session.service';
 
 @Injectable({ providedIn: 'root' })
 export class ConsultantStatusService {
-  private readonly apiBaseUrl = 'http://localhost:5181/api/consultant';
+  private readonly apiBaseUrl = 'http://localhost:5182/api/consultant';
 
   constructor(
     private readonly http: HttpClient,

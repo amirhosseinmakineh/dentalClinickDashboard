@@ -1,0 +1,162 @@
+<section class="lead-management-table" dir="rtl">
+  <div class="lead-header">
+    <div>
+      <p class="eyebrow">Lead Management</p>
+      <h2>مدیریت لیدها</h2>
+    </div>
+
+    <div class="lead-summary">
+      <span>کل شماره‌ها: {{ leads.length }}</span>
+      <span>نمایش: {{ filteredLeads.length }}</span>
+    </div>
+  </div>
+
+  <div class="lead-filters">
+    <button
+      type="button"
+      [class.active]="leadFilter === 'all'"
+      (click)="changeLeadFilter('all')"
+    >
+      همه شماره‌ها
+    </button>
+
+    <button
+      type="button"
+      [class.active]="leadFilter === 'new'"
+      (click)="changeLeadFilter('new')"
+    >
+      شماره‌های جدید
+    </button>
+
+    <button
+      type="button"
+      [class.active]="leadFilter === 'offlineQueue'"
+      (click)="changeLeadFilter('offlineQueue')"
+    >
+      شماره‌های ۹ شب تا ۹ صبح
+    </button>
+
+    <button
+      type="button"
+      [class.active]="leadFilter === 'pending'"
+      (click)="changeLeadFilter('pending')"
+    >
+      در انتظار تماس
+    </button>
+
+    <button
+      type="button"
+      [class.active]="leadFilter === 'today'"
+      (click)="changeLeadFilter('today')"
+    >
+      شماره‌های جدید امروز
+    </button>
+
+    <button
+      type="button"
+      [class.active]="leadFilter === 'approved'"
+      (click)="changeLeadFilter('approved')"
+    >
+      شماره‌های تایید شده
+    </button>
+
+    <button
+      type="button"
+      [class.active]="leadFilter === 'expired'"
+      (click)="changeLeadFilter('expired')"
+    >
+      Expire شده
+    </button>
+  </div>
+
+  <div class="table-shell">
+    <table>
+      <thead>
+        <tr>
+          <th>نام و نام خانوادگی</th>
+          <th>شماره همراه</th>
+          <th>تاریخ ثبت</th>
+          <th>نوع لید</th>
+          <th>وضعیت</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let lead of pagedLeads; trackBy: trackByLeadId">
+          <td>{{ lead.fullName }}</td>
+
+          <td dir="ltr">{{ lead.phoneNumber }}</td>
+
+          <td>{{ lead.createdAt | date: "yyyy/MM/dd HH:mm" }}</td>
+
+          <td>
+            <span
+              class="type-badge"
+              [class.type-realtime]="lead.assignmentType === 'RealTime'"
+              [class.type-offline]="lead.assignmentType === 'OfflineQueue'"
+            >
+              {{
+                lead.assignmentType === "RealTime"
+                  ? "لحظه‌ای"
+                  : "۹ شب تا ۹ صبح"
+              }}
+            </span>
+          </td>
+
+          <td>
+            <span [class]="getStatusClass(lead)">
+              {{ getStatusLabel(lead) }}
+            </span>
+          </td>
+
+          <td>
+            <button type="button" class="call-btn" aria-label="تماس">
+              <span class="material-symbols-outlined">call</span>
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="pagedLeads.length === 0">
+          <td colspan="6" class="empty-state">
+            شماره‌ای برای این فیلتر پیدا نشد.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-bar">
+    <span>
+      نمایش {{ pagedLeads.length }} از {{ filteredLeads.length }} شماره -
+      صفحه {{ pageNumber }} از {{ totalPages }}
+    </span>
+
+    <label>
+      تعداد در صفحه
+      <select [value]="pageSize" (change)="changeLeadPageSize($event)">
+        <option *ngFor="let size of pageSizeOptions" [value]="size">
+          {{ size }}
+        </option>
+      </select>
+    </label>
+
+    <div class="pagination-actions">
+      <button
+        type="button"
+        [disabled]="pageNumber === 1"
+        (click)="changeLeadPage(pageNumber - 1)"
+      >
+        قبلی
+      </button>
+
+      <button
+        type="button"
+        [disabled]="pageNumber === totalPages"
+        (click)="changeLeadPage(pageNumber + 1)"
+      >
+        بعدی
+      </button>
+    </div>
+  </div>
+</section>

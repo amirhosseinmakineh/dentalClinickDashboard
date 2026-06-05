@@ -6,6 +6,7 @@ import { ConsultantDashboardComponent } from './components/consultant-dashboard/
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { authGuard } from './guards/auth.guard';
+import { LeadManagmentComponent } from './components/leadManagment/leadManagment.component';
 
 export const routes: Routes = [
   {
@@ -36,11 +37,28 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'consultant/dashboard',
-    component: DashboardComponent,
-    title: 'داشبورد مشاور',
-    canActivate: [authGuard]
-  },
+  path: 'consultant',
+  component: DashboardComponent,
+  title: 'داشبورد مشاور',
+  canActivate: [authGuard],
+  children: [
+    {
+      path: 'dashboard',
+      component: ConsultantDashboardComponent,
+      title: 'داشبورد مشاور'
+    },
+    {
+      path: 'leadManagment',
+      component: LeadManagmentComponent,
+      title: 'مدیریت لید ها'
+    },
+    {
+      path: '',
+      redirectTo: 'dashboard',
+      pathMatch: 'full'
+    }
+  ]
+},
   {
     path: '**',
     redirectTo: ''

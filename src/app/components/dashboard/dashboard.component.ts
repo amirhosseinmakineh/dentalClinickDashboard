@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
@@ -15,6 +15,7 @@ import { ConsultantDashboardComponent } from '../consultant-dashboard/consultant
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
 import { RoleManagementComponent, RoleRow } from '../role-management/role-management.component';
 import { SidebarComponent, SidebarItem } from '../sidebar/sidebar.component';
+import { LeadManagmentComponent } from '../leadManagment/leadManagment.component';
 
 interface DashboardStat {
   label: string;
@@ -51,7 +52,7 @@ interface JalaliDay {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent, ConsultantDashboardComponent],
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, DashboardHeaderComponent, RoleManagementComponent, ConsultantDashboardComponent, LeadManagmentComponent, RouterOutlet],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -119,10 +120,20 @@ export class DashboardComponent implements OnInit {
   ];
 
 
-  private readonly consultantSidebarItems: SidebarItem[] = [
-    { key: 'consultant-dashboard', label: 'داشبورد مشاور', icon: 'dashboard', componentName: 'app-consultant-dashboard' }
-  ];
-
+private readonly consultantSidebarItems: SidebarItem[] = [
+  {
+    key: 'consultant-dashboard',
+    label: 'داشبورد مشاور',
+    icon: 'dashboard',
+    route: '/consultant/dashboard'
+  },
+  {
+    key: 'consultant-leadManagment',
+    label: 'مدیریت لید ها',
+    icon: 'list',
+    route: '/consultant/leadManagment'
+  }
+];
   readonly stats: DashboardStat[] = [
     { label: 'بیماران فعال', value: '۲,۴۸۰', trend: '+۱۲٪ نسبت به ماه قبل', icon: 'groups' },
     { label: 'نوبت‌های امروز', value: '۳۶', trend: '۸ نوبت در انتظار تایید', icon: 'event_available' },
@@ -189,14 +200,17 @@ export class DashboardComponent implements OnInit {
     this.isSidebarOpen = false;
   }
 
-  setActive(item: SidebarItem): void {
-    if (!this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
-      return;
-    }
-
-    this.activeKey = item.key;
-    this.closeSidebar();
+setActive(item: SidebarItem): void {
+  if (!this.sidebarItems.some((sidebarItem) => sidebarItem.key === item.key)) {
+    return;
   }
+
+  this.activeKey = item.key;
+
+  if (item.route) {
+    this.router.navigateByUrl(item.route);
+  }
+}
 
   logout(): void {
     this.authSession.clear();

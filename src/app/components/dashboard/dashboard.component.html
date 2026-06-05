@@ -1,4 +1,5 @@
 <div class="dashboard-shell" dir="rtl" [class.is-sidebar-closed]="!isSidebarOpen">
+  <!-- Sidebar -->
   <app-sidebar
     [items]="sidebarItems"
     [isOpen]="isSidebarOpen"
@@ -10,220 +11,34 @@
     (itemSelected)="setActive($event)"
   />
 
+  <!-- Main content -->
   <main class="dashboard-main">
-    <app-dashboard-header [title]="activeTitle" [subtitle]="activeSubtitle" (toggleSidebar)="toggleSidebar()" (logout)="logout()" />
+    <app-dashboard-header
+      [title]="activeTitle"
+      [subtitle]="activeSubtitle"
+      (toggleSidebar)="toggleSidebar()"
+      (logout)="logout()"
+    />
 
-    <app-consultant-dashboard *ngIf="role === 'consultant'; else adminDashboardContent" [activeKey]="activeKey" />
-
-    <ng-template #adminDashboardContent>
-    <section class="content-canvas" aria-label="فضای محتوای اصلی">
-      <div>
-        <span class="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
-        <h2>داشبورد ادمین</h2>
-      </div>
-    </section>
-
-    <section class="stats-grid" aria-label="شاخص‌های کلیدی کلینیک">
-      <article class="stat-card" *ngFor="let stat of stats; trackBy: trackByLabel">
-        <span class="material-symbols-outlined" aria-hidden="true">{{ stat.icon }}</span>
-        <div>
-          <p>{{ stat.label }}</p>
-          <strong>{{ stat.value }}</strong>
-          <small>{{ stat.trend }}</small>
-        </div>
-      </article>
-    </section>
-
-    <ng-container [ngSwitch]="activeKey">
-        <section *ngSwitchCase="'users'" class="management-panel" aria-labelledby="users-title">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">User Management</p>
-              <h2 id="users-title">مدیریت کاربران</h2>
-            </div>
-            <div class="panel-actions">
-              <button type="button" class="ghost-button" (click)="exportUsers('excel')">خروجی اکسل</button>
-              <button type="button" class="ghost-button" (click)="exportUsers('pdf')">خروجی PDF</button>
-              <button type="button" class="primary-button" [disabled]="isUsersLoading" (click)="openUserDialog('create')">افزودن کاربر</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <label>
-              <span class="material-symbols-outlined" aria-hidden="true">search</span>
-              <input type="search" placeholder="جستجوی نام، نقش یا شماره موبایل" />
-            </label>
-            <button type="button">فیلتر وضعیت</button>
-            <button type="button">مرتب‌سازی</button>
-          </div>
-
-          <p class="status-message" *ngIf="isUsersLoading">در حال دریافت کاربران از API پورت ۵۱۸۲...</p>
-          <p class="status-message" *ngIf="userLoadError">{{ userLoadError }}</p>
-
-          <div class="data-table data-table--users" role="table" aria-label="جدول کاربران">
-            <div class="table-row table-head" role="row">
-              <span role="columnheader">کاربر</span>
-              <span role="columnheader">نقش</span>
-              <span role="columnheader">شماره موبایل</span>
-              <span role="columnheader">وضعیت</span>
-              <span role="columnheader">پروفایل</span>
-              <span role="columnheader">عملیات</span>
-            </div>
-            <div class="table-row" role="row" *ngFor="let user of userPage.items; trackBy: trackById">
-              <span role="cell">{{ user.name }}</span>
-              <span role="cell">{{ user.roleName }}</span>
-              <span role="cell" dir="ltr">{{ user.phoneNumber }}</span>
-              <span role="cell"><mark>{{ getUserStatusLabel(user) }}</mark></span>
-              <span role="cell">{{ getProfileStatusLabel(user) }} / {{ getGenderLabel(user.gender) }}</span>
-              <span role="cell" class="row-actions">
-                <button type="button" (click)="openUserDialog('edit', user)">ویرایش</button>
-                <button type="button" class="danger-link" (click)="openUserDialog('delete', user)">حذف</button>
-              </span>
-            </div>
-          </div>
-
-          <div class="pagination-bar" aria-label="صفحه‌بندی کاربران">
-            <span>نمایش {{ userPage.items.length }} از {{ userPage.totalCount }} کاربر - صفحه {{ userPage.pageNumber }} از {{ userPage.totalPages }}</span>
-            <label>
-              تعداد در صفحه
-              <select [value]="userPageSize" (change)="changeUserPageSize($event)">
-                <option *ngFor="let size of pageSizeOptions; trackBy: trackByValue" [value]="size">{{ size }}</option>
-              </select>
-            </label>
-            <div>
-              <button type="button" [disabled]="!userPage.hasPrevious" (click)="changeUserPage(userPage.pageNumber - 1)">قبلی</button>
-              <button type="button" [disabled]="!userPage.hasNext" (click)="changeUserPage(userPage.pageNumber + 1)">بعدی</button>
-            </div>
-          </div>
-        </section>
-
-        <app-role-management
-          *ngSwitchCase="'roles'"
-          (rolesChanged)="updateRoleOptions($event)"
-        />
-
-      <section *ngSwitchCase="'overview'" class="management-panel" aria-labelledby="overview-title">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Clinic Overview</p>
-              <h2 id="overview-title">نمای کلی داشبورد</h2>
-            </div>
-          </div>
-
-          <div class="overview-grid">
-            <article>
-              <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-              <h3>کارهای امروز</h3>
-              <p>۱۲ پیگیری درمان، ۸ تایید نوبت و ۴ پیام جدید بیماران.</p>
-            </article>
-            <article>
-              <span class="material-symbols-outlined" aria-hidden="true">insights</span>
-              <h3>روند کلینیک</h3>
-              <p>نرخ تکمیل درمان‌ها و رضایت بیماران در حال رشد است.</p>
-            </article>
-          </div>
-      </section>
-    </ng-container>
-    </ng-template>
+    <!-- Router outlet: همه صفحات فرزند اینجا لود میشن -->
+    <router-outlet></router-outlet>
   </main>
 </div>
 
-<div class="dialog-backdrop" *ngIf="dialogEntity" role="presentation" (click)="closeDialog()">
-  <section class="admin-dialog" role="dialog" aria-modal="true" [attr.aria-label]="dialogTitle" (click)="$event.stopPropagation()">
-    <header>
-      <h2>{{ dialogTitle }}</h2>
-      <button type="button" aria-label="بستن دیالوگ" (click)="closeDialog()">×</button>
-    </header>
-
-    <form *ngIf="dialogEntity === 'user' && dialogMode !== 'delete'" [formGroup]="userForm" (ngSubmit)="submitDialog()" class="dialog-form">
-      <label>نام<input type="text" formControlName="firstName" /></label>
-      <label>نام خانوادگی<input type="text" formControlName="lastName" /></label>
-      <label>شماره موبایل<input type="text" formControlName="phoneNumber" dir="ltr" placeholder="09123456789" /></label>
-      <label *ngIf="dialogMode === 'create'">رمز عبور اولیه<input type="password" formControlName="passwordHash" autocomplete="new-password" /></label>
-      <label>نقش
-        <select formControlName="roleName">
-          <option value="" disabled>انتخاب نقش</option>
-          <option *ngFor="let roleItem of roles; trackBy: trackById" [value]="roleItem.roleName">{{ roleItem.roleName }}</option>
-        </select>
-      </label>
-      <label>جنسیت
-        <select formControlName="gender">
-          <option [ngValue]="1">آقا</option>
-          <option [ngValue]="2">خانم</option>
-        </select>
-      </label>
-      <label *ngIf="dialogMode === 'create'" class="date-field" (click)="$event.stopPropagation()">تاریخ تولد
-        <button class="dialog-date-button" type="button" (click)="toggleDatepicker($event)" [attr.aria-expanded]="isDatepickerOpen" aria-haspopup="dialog">
-          <span [class.date-value--placeholder]="!selectedJalaliDate">{{ selectedJalaliDate || 'انتخاب تاریخ شمسی' }}</span>
-          <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
-        </button>
-        <input type="hidden" formControlName="birthDate" />
-        <div *ngIf="isDatepickerOpen" class="jalali-datepicker" role="dialog" aria-label="انتخاب تاریخ تولد شمسی">
-          <div class="datepicker-header">
-            <button type="button" (click)="previousMonth()" aria-label="ماه قبل">
-              <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
-            </button>
-            <strong>{{ currentMonthTitle }}</strong>
-            <button type="button" (click)="nextMonth()" aria-label="ماه بعد">
-              <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
-            </button>
-          </div>
-          <div class="weekday-grid" aria-hidden="true">
-            <span *ngFor="let dayName of weekDays; trackBy: trackByValue">{{ dayName }}</span>
-          </div>
-          <div class="day-grid">
-            <button
-              *ngFor="let day of calendarDays; trackBy: trackByCalendarDay"
-              type="button"
-              [class.day-cell--empty]="!day"
-              [class.day-cell--today]="day?.isToday"
-              [class.day-cell--selected]="day?.isSelected"
-              [disabled]="!day"
-              (click)="selectDate(day, $event)"
-            >
-              {{ day?.label }}
-            </button>
-          </div>
-        </div>
-      </label>
-      <label>تصویر پروفایل
-        <span class="avatar-upload">
-          <span class="avatar-preview" aria-hidden="true">
-            <img *ngIf="selectedAvatarPreview; else avatarPlaceholder" [src]="selectedAvatarPreview" alt="" />
-            <ng-template #avatarPlaceholder>
-              <span class="material-symbols-outlined">add_a_photo</span>
-            </ng-template>
-          </span>
-          <span class="avatar-upload__text">{{ selectedAvatarName || 'انتخاب تصویر' }}</span>
-          <input class="file-input" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
-        </span>
-        <input type="hidden" formControlName="avatarImageName" />
-      </label>
-      <label>وضعیت حساب
-        <select formControlName="isActive">
-          <option [ngValue]="true">فعال</option>
-          <option [ngValue]="false">غیرفعال</option>
-        </select>
-      </label>
-      <label>تکمیل پروفایل
-        <select formControlName="isCompleteProfile">
-          <option [ngValue]="true">تکمیل شده</option>
-          <option [ngValue]="false">ناقص</option>
-        </select>
-      </label>
-      <div class="dialog-actions">
-        <button type="button" class="ghost-button" (click)="closeDialog()">انصراف</button>
-        <button type="submit" class="primary-button" [disabled]="userForm.invalid || isDialogSubmitting">{{ isDialogSubmitting ? 'در حال ثبت...' : 'ثبت' }}</button>
-      </div>
-    </form>
-
-    <div class="delete-confirm" *ngIf="dialogMode === 'delete'">
-      <span class="material-symbols-outlined" aria-hidden="true">warning</span>
-      <p *ngIf="dialogEntity === 'user'">آیا از حذف کاربر «{{ selectedUser?.name }}» مطمئن هستید؟ این عملیات فقط از همین دیالوگ تایید می‌شود.</p>
-      <div class="dialog-actions">
-        <button type="button" class="ghost-button" (click)="closeDialog()">انصراف</button>
-        <button type="button" class="danger-button" [disabled]="isDialogSubmitting" (click)="submitDialog()">{{ isDialogSubmitting ? 'در حال حذف...' : 'حذف قطعی' }}</button>
-      </div>
-    </div>
+<!-- Dialog overlay -->
+<div
+  class="dialog-backdrop"
+  *ngIf="dialogEntity"
+  role="presentation"
+  (click)="closeDialog()"
+>
+  <section
+    class="admin-dialog"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="dialogTitle"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- محتوا و فرم دیالوگ (همان فرم مدیریت کاربران قبلی) -->
   </section>
 </div>
