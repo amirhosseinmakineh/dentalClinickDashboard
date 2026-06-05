@@ -6,8 +6,8 @@
     </div>
 
     <div class="lead-summary">
-      <span>کل شماره‌ها: {{ leads.length }}</span>
-      <span>نمایش: {{ filteredLeads.length }}</span>
+      <span>کل شماره‌ها: {{ totalCount }}</span>
+      <span>نمایش: {{ leads.length }}</span>
     </div>
   </div>
 
@@ -75,7 +75,6 @@
         <tr>
           <th>نام و نام خانوادگی</th>
           <th>شماره همراه</th>
-          <th>تاریخ ثبت</th>
           <th>نوع لید</th>
           <th>وضعیت</th>
           <th>عملیات</th>
@@ -83,24 +82,14 @@
       </thead>
 
       <tbody>
-        <tr *ngFor="let lead of pagedLeads; trackBy: trackByLeadId">
-          <td>{{ lead.fullName }}</td>
+        <tr *ngFor="let lead of leads; trackBy: trackByLead">
+          <td>{{ lead.userName }}</td>
 
           <td dir="ltr">{{ lead.phoneNumber }}</td>
 
-          <td>{{ lead.createdAt | date: "yyyy/MM/dd HH:mm" }}</td>
-
           <td>
-            <span
-              class="type-badge"
-              [class.type-realtime]="lead.assignmentType === 'RealTime'"
-              [class.type-offline]="lead.assignmentType === 'OfflineQueue'"
-            >
-              {{
-                lead.assignmentType === "RealTime"
-                  ? "لحظه‌ای"
-                  : "۹ شب تا ۹ صبح"
-              }}
+            <span class="type-badge" [ngClass]="getTypeClass(lead)">
+              {{ getTypeLabel(lead) }}
             </span>
           </td>
 
@@ -117,9 +106,9 @@
           </td>
         </tr>
 
-        <tr *ngIf="pagedLeads.length === 0">
-          <td colspan="6" class="empty-state">
-            شماره‌ای برای این فیلتر پیدا نشد.
+        <tr *ngIf="leads.length === 0">
+          <td colspan="5" class="empty-state">
+            {{ isLoading ? "در حال دریافت شماره‌ها..." : "شماره‌ای برای این فیلتر پیدا نشد." }}
           </td>
         </tr>
       </tbody>
@@ -128,7 +117,7 @@
 
   <div class="pagination-bar">
     <span>
-      نمایش {{ pagedLeads.length }} از {{ filteredLeads.length }} شماره -
+      نمایش {{ leads.length }} از {{ totalCount }} شماره -
       صفحه {{ pageNumber }} از {{ totalPages }}
     </span>
 
