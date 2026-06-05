@@ -1,22 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-type LeadAssignmentType = 'RealTime' | 'OfflineQueue';
-type LeadAssignmentState = 'Pending' | 'Assigned' | 'Called' | 'NotCalled' | 'Expired';
-type LeadFilter = 'all' | 'new' | 'offlineQueue' | 'pending' | 'today' | 'approved' | 'expired';
-
-export interface LeadAssignmentDto {
-  id: number;
-  fullName: string;
-  phoneNumber: string;
-  createdAt: string;
-  assignedAt?: string | null;
-  callDeadlineAt?: string | null;
-  assignmentType: LeadAssignmentType;
-  leadAssignmentState: LeadAssignmentState;
-  requiresThreeMinuteCall: boolean;
-}
+import { GetLeadsQueryParams, LeadAssignmentItem, LeadFilter } from '../../models/lead-assignment.model';
+import { LeadAssignmentService } from '../../services/lead-assignment.service';
 
 @Component({
   selector: 'app-lead-management',
@@ -26,60 +13,31 @@ export interface LeadAssignmentDto {
   styleUrls: ['./leadManagment.component.scss']
 })
 export class LeadManagmentComponent implements OnInit {
-
-  @Input() leads: LeadAssignmentDto[] = [];
-
+  leads: LeadAssignmentItem[] = [];
   leadFilter: LeadFilter = 'all';
   pageNumber = 1;
   pageSize = 10;
+  totalCount = 0;
+  totalPages = 1;
+  isLoading = false;
   readonly pageSizeOptions = [5, 10, 20, 50];
 
-  constructor() {}
+  constructor(private readonly leadAssignmentService: LeadAssignmentService) {}
 
-  ngOnInit(): void {}
-
-  // --- Computed properties ---
-  get filteredLeads(): LeadAssignmentDto[] {
-    const today = new Date();
-    return this.leads.filter(lead => {
-      const createdAt = new Date(lead.createdAt);
-      switch (this.leadFilter) {
-        case 'new':
-          return lead.leadAssignmentState === 'Pending';
-        case 'offlineQueue':
-          return lead.assignmentType === 'OfflineQueue';
-        case 'pending':
-          return lead.leadAssignmentState === 'Assigned';
-        case 'today':
-          return this.isSameDate(createdAt, today);
-        case 'approved':
-          return lead.leadAssignmentState === 'Called';
-        case 'expired':
-          return lead.leadAssignmentState === 'Expired';
-        default:
-          return true;
-      }
-    });
+  ngOnInit(): void {
+    this.loadLeads();
   }
 
-  get pagedLeads(): LeadAssignmentDto[] {
-    const start = (this.pageNumber - 1) * this.pageSize;
-    return this.filteredLeads.slice(start, start + this.pageSize);
-  }
-
-  get totalPages(): number {
-    return Math.ceil(this.filteredLeads.length / this.pageSize) || 1;
-  }
-
-  // --- Actions ---
   changeLeadFilter(filter: LeadFilter): void {
     this.leadFilter = filter;
     this.pageNumber = 1;
+    this.loadLeads();
   }
 
   changeLeadPage(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.pageNumber = page;
+    this.loadLeads();
   }
 
   changeLeadPageSize(event: Event): void {
@@ -87,37 +45,97 @@ export class LeadManagmentComponent implements OnInit {
     if (!Number.isFinite(value) || value <= 0) return;
     this.pageSize = value;
     this.pageNumber = 1;
+    this.loadLeads();
   }
 
-  getStatusLabel(lead: LeadAssignmentDto): string {
-    switch (lead.leadAssignmentState) {
-      case 'Pending': return 'جدید';
-      case 'Assigned': return 'در انتظار تماس';
-      case 'Called': return 'تایید شده';
-      case 'NotCalled': return 'تماس ناموفق';
-      case 'Expired': return 'Expire شده';
+  getStatusLabel(lead: LeadAssignmentItem): string {
+    switch (this.normalizeLeadAssignmentState(lead.leadAssignmentState)) {
+      case 'New': return 'جدید';
+      case 'Pending': return 'در انتظار تماس';
+      case 'Contacted': return 'تایید شده';
+      case 'Rejected': return 'رد شده';
       default: return 'نامشخص';
     }
   }
 
-  getStatusClass(lead: LeadAssignmentDto): string {
-    switch (lead.leadAssignmentState) {
-      case 'Called': return 'status-valid';
-      case 'Expired':
-      case 'NotCalled': return 'status-expired';
-      case 'Assigned':
-      case 'Pending': return 'status-pending';
+  getStatusClass(lead: LeadAssignmentItem): string {
+    switch (this.normalizeLeadAssignmentState(lead.leadAssignmentState)) {
+      case 'Contacted': return 'status-valid';
+      case 'Rejected': return 'status-expired';
+      case 'Pending':
+      case 'New': return 'status-pending';
       default: return 'status-invalid';
     }
   }
 
-  trackByLeadId(_: number, lead: LeadAssignmentDto): number {
-    return lead.id;
+  getTypeLabel(lead: LeadAssignmentItem): string {
+    return this.normalizeLeadAssignmentType(lead.leadAssignmentType) === 'OfflineQueue'
+      ? '۹ شب تا ۹ صبح'
+      : 'لحظه‌ای';
   }
 
-  private isSameDate(firstDate: Date, secondDate: Date): boolean {
-    return firstDate.getFullYear() === secondDate.getFullYear()
-      && firstDate.getMonth() === secondDate.getMonth()
-      && firstDate.getDate() === secondDate.getDate();
+  getTypeClass(lead: LeadAssignmentItem): string {
+    return this.normalizeLeadAssignmentType(lead.leadAssignmentType) === 'OfflineQueue'
+      ? 'type-offline'
+      : 'type-realtime';
+  }
+
+  trackByLead(_: number, lead: LeadAssignmentItem): string {
+    return `${lead.phoneNumber}-${lead.userName}`;
+  }
+
+  private loadLeads(): void {
+    this.isLoading = true;
+
+    this.leadAssignmentService.getLeads(this.buildQuery()).subscribe((result) => {
+      this.leads = [...result.items];
+      this.totalCount = result.totalCount;
+      this.pageNumber = result.pageNumber;
+      this.pageSize = result.pageSize;
+      this.totalPages = Math.max(1, result.totalPages);
+      this.isLoading = false;
+    });
+  }
+
+  private buildQuery(): GetLeadsQueryParams {
+    const query: GetLeadsQueryParams = {
+      PageNumber: this.pageNumber,
+      PageSize: this.pageSize
+    };
+
+    switch (this.leadFilter) {
+      case 'new':
+      case 'today':
+        query.leadAssignmentState = 'New';
+        break;
+      case 'offlineQueue':
+        query.LeadAssignmentType = 'OfflineQueue';
+        break;
+      case 'pending':
+        query.leadAssignmentState = 'Pending';
+        break;
+      case 'approved':
+        query.leadAssignmentState = 'Contacted';
+        break;
+      case 'expired':
+        query.leadAssignmentState = 'Rejected';
+        break;
+    }
+
+    return query;
+  }
+
+  private normalizeLeadAssignmentState(state: LeadAssignmentItem['leadAssignmentState']): string {
+    if (typeof state === 'string') return state;
+
+    const states = ['New', 'Pending', 'Contacted', 'Rejected'];
+    return states[state] ?? '';
+  }
+
+  private normalizeLeadAssignmentType(type: LeadAssignmentItem['leadAssignmentType']): string {
+    if (typeof type === 'string') return type;
+
+    const types = ['RealTime', 'OfflineQueue'];
+    return types[type] ?? '';
   }
 }
