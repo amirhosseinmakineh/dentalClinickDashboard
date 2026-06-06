@@ -39,7 +39,7 @@ export class ConsultantProfileCompletionComponent {
 
     this.consultantProfileService
       .completeProfile({
-        nationalCode: value.nationalCode.trim(),
+        NationalityCode: value.nationalCode.trim(),
         address: value.address.trim()
       })
       .pipe(finalize(() => (this.isSubmitting = false)))

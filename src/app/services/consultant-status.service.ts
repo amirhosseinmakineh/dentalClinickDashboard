@@ -81,13 +81,6 @@ export class ConsultantStatusService {
   private toFailureResult(error: HttpErrorResponse, profileId: number): ApiResult<ConsultantStatusSnapshot> {
     const body = error.error as ConsultantStatusApiResult | string | null;
 
-    if (storedStatus) {
-      return {
-        isSuccess: true,
-        message: 'آخرین وضعیت ثبت‌شده نمایش داده شد.',
-        data: storedStatus
-      };
-    }
 
     if (body && typeof body === 'object') {
       return this.normalizeResult(body, this.getStoredStatus(profileId));

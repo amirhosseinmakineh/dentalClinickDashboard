@@ -21,6 +21,6 @@ export interface AuthSession {
 }
 
 export interface CompleteConsultantProfileCommand {
-  nationalCode: string;
+  NationalityCode: string;
   address: string;
 }
