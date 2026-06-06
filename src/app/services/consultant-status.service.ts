@@ -3,7 +3,15 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 
 import { ApiResult } from '../models/api-result.model';
-import { ConsultantStatusApiData, ConsultantStatusApiResult, ConsultantStatusSnapshot, SetAvailableCommand, SetOnlineOfflineCommand } from '../models/consultant-status.model';
+import {
+  ConsultantStatusApiData,
+  ConsultantStatusApiResult,
+  ConsultantStatusSnapshot,
+  SetAvailableApiCommand,
+  SetAvailableCommand,
+  SetOnlineOfflineApiCommand,
+  SetOnlineOfflineCommand
+} from '../models/consultant-status.model';
 import { AuthSessionService } from './auth-session.service';
 
 @Injectable({ providedIn: 'root' })
@@ -25,13 +33,14 @@ export class ConsultantStatusService {
   }
 
   setAvailable(command: SetAvailableCommand): Observable<ApiResult<ConsultantStatusSnapshot>> {
+    const apiCommand = this.toSetAvailableApiCommand(command);
     const nextStatus = this.mergeWithStoredStatus(command.profileId, {
       isAvailable: command.isAvailable,
       isOnline: command.isAvailable ? undefined : false
     });
 
     return this.http
-      .post<ConsultantStatusApiResult>(`${this.apiBaseUrl}/SetAvalableConsultant`, command, {
+      .post<ConsultantStatusApiResult>(`${this.apiBaseUrl}/SetAvalableConsultant`, apiCommand, {
         headers: this.getAuthorizationHeaders()
       })
       .pipe(
@@ -46,10 +55,11 @@ export class ConsultantStatusService {
   }
 
   setOnlineOffline(command: SetOnlineOfflineCommand): Observable<ApiResult<ConsultantStatusSnapshot>> {
+    const apiCommand = this.toSetOnlineOfflineApiCommand(command);
     const nextStatus = this.mergeWithStoredStatus(command.profileId, { isOnline: command.isOnline });
 
     return this.http
-      .post<ConsultantStatusApiResult>(`${this.apiBaseUrl}/SetOnlineOfflineConsultant`, command, {
+      .post<ConsultantStatusApiResult>(`${this.apiBaseUrl}/SetOnlineOfflineConsultant`, apiCommand, {
         headers: this.getAuthorizationHeaders()
       })
       .pipe(
@@ -61,6 +71,20 @@ export class ConsultantStatusService {
         }),
         catchError((error: HttpErrorResponse) => of(this.toFailureResult(error, command.profileId)))
       );
+  }
+
+  private toSetAvailableApiCommand(command: SetAvailableCommand): SetAvailableApiCommand {
+    return {
+      ProfileId: command.profileId,
+      IsAvailable: command.isAvailable
+    };
+  }
+
+  private toSetOnlineOfflineApiCommand(command: SetOnlineOfflineCommand): SetOnlineOfflineApiCommand {
+    return {
+      ProfileId: command.profileId,
+      IsOnline: command.isOnline
+    };
   }
 
   private getAuthorizationHeaders(): HttpHeaders {

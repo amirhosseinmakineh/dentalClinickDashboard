@@ -3,9 +3,19 @@ export interface SetAvailableCommand {
   isAvailable: boolean;
 }
 
+export interface SetAvailableApiCommand {
+  ProfileId: number;
+  IsAvailable: boolean;
+}
+
 export interface SetOnlineOfflineCommand {
   profileId: number;
   isOnline: boolean;
+}
+
+export interface SetOnlineOfflineApiCommand {
+  ProfileId: number;
+  IsOnline: boolean;
 }
 
 export interface ConsultantStatusSnapshot {
