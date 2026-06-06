@@ -55,14 +55,22 @@ export class ConsultantProfileCompletionComponent {
       });
   }
   private getCompletedProfileId(data: unknown): number | undefined {
+    if (typeof data === 'number' || typeof data === 'string') {
+      return this.toPositiveNumber(data);
+    }
+
     if (!data || typeof data !== 'object') {
       return undefined;
     }
 
     const response = data as Record<string, unknown>;
     const value = response['profileId'] ?? response['ProfileId'] ?? response['id'] ?? response['Id'] ?? response['consultantProfileId'] ?? response['ConsultantProfileId'];
-    const numericValue = Number(value);
 
+    return this.toPositiveNumber(value);
+  }
+
+  private toPositiveNumber(value: unknown): number | undefined {
+    const numericValue = Number(value);
     return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : undefined;
   }
 
