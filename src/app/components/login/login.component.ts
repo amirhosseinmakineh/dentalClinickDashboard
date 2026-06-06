@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
 import { AuthService } from '../../services/auth.service';
+import { AuthSession } from '../../models/auth.model';
 import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
@@ -65,7 +66,7 @@ export class LoginComponent {
           const session = this.authSession.setToken(token);
 
           this.toastr.success(result.message);
-          void this.router.navigate([session.role === 'admin' ? '/admin' : '/consultant/dashboard']);
+          void this.router.navigate([this.getRedirectUrl(session)]);
         },
         error: () => {
           this.toastr.error('خطا در ارتباط با سرور');
@@ -75,6 +76,14 @@ export class LoginComponent {
 
   togglePasswordVisibility(): void {
     this.isPasswordVisible = !this.isPasswordVisible;
+  }
+
+  private getRedirectUrl(session: AuthSession): string {
+    if (session.role === 'admin') {
+      return '/admin';
+    }
+
+    return session.role === 'consultant' && !session.isCompleteProfile ? '/consultant/complete-profile' : '/consultant/dashboard';
   }
 
   private getToken(data: unknown): string | null {

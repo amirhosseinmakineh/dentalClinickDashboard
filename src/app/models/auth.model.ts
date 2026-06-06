@@ -19,3 +19,8 @@ export interface AuthSession {
   role: UserRole;
   isCompleteProfile: boolean;
 }
+
+export interface CompleteConsultantProfileCommand {
+  nationalCode: string;
+  address: string;
+}

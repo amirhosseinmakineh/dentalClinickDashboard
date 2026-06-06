@@ -6,8 +6,11 @@ import { AuthSession, UserRole } from '../models/auth.model';
 export class AuthSessionService {
   private readonly tokenStorageKey = 'dental_dashboard_token';
   private readonly completedProfileStorageKey = 'dental_dashboard_profile_completed';
+  private readonly profileIdStorageKey = 'dental_dashboard_profile_id';
 
   setToken(token: string): AuthSession {
+    localStorage.removeItem(this.completedProfileStorageKey);
+    localStorage.removeItem(this.profileIdStorageKey);
     localStorage.setItem(this.tokenStorageKey, token);
     return this.getSessionFromToken(token);
   }
@@ -24,9 +27,10 @@ export class AuthSessionService {
   clear(): void {
     localStorage.removeItem(this.tokenStorageKey);
     localStorage.removeItem(this.completedProfileStorageKey);
+    localStorage.removeItem(this.profileIdStorageKey);
   }
 
-  markProfileCompleted(): AuthSession | null {
+  markProfileCompleted(profileId?: number): AuthSession | null {
     const session = this.getSession();
 
     if (!session) {
@@ -34,6 +38,10 @@ export class AuthSessionService {
     }
 
     localStorage.setItem(this.completedProfileStorageKey, 'true');
+
+    if (profileId && Number.isFinite(profileId) && profileId > 0) {
+      localStorage.setItem(this.profileIdStorageKey, `${profileId}`);
+    }
 
     return {
       ...session,
@@ -90,6 +98,12 @@ export class AuthSessionService {
   }
 
   private getProfileId(claims: Record<string, unknown>): number {
+    const overrideValue = Number(localStorage.getItem(this.profileIdStorageKey));
+
+    if (Number.isFinite(overrideValue) && overrideValue > 0) {
+      return overrideValue;
+    }
+
     const value = this.findClaim(claims, [
       'profileId',
       'ProfileId',
@@ -98,7 +112,7 @@ export class AuthSessionService {
     ]);
     const numericValue = Number(value);
 
-    return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : 1;
+    return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : 0;
   }
 
   private getRole(claims: Record<string, unknown>): UserRole {
@@ -126,7 +140,7 @@ export class AuthSessionService {
   }
 
   private getIsCompleteProfile(claims: Record<string, unknown>): boolean {
-    const value = this.findClaim(claims, ['isCompleteProfile', 'IsCompleteProfile', 'is_complete_profile']);
+    const value = this.findClaim(claims, ['isCompleteProfile', 'IsCompleteProfile', 'is_complete_profile', 'IsProfileComplete', 'profileCompleted', 'ProfileCompleted']);
 
     if (typeof value === 'boolean') {
       return value;

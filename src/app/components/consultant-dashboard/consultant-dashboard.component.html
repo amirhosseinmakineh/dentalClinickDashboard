@@ -7,6 +7,8 @@
     <span class="material-symbols-outlined" aria-hidden="true">support_agent</span>
   </header>
 
+  <p class="status-hint" *ngIf="statusState.isLoading">در حال دریافت آخرین وضعیت ثبت‌شده...</p>
+
   <div class="status-grid">
     <article class="status-card" [class.is-active]="statusState.isAvailable">
       <div class="status-card__header">
@@ -25,7 +27,7 @@
         <button
           type="button"
           class="success-button"
-          [disabled]="statusState.isSubmittingAvailable || statusState.isAvailable"
+          [disabled]="statusState.isLoading || statusState.isSubmittingAvailable || statusState.isAvailable"
           (click)="setAvailable(true)"
         >
           {{ statusState.isSubmittingAvailable ? 'در حال ثبت...' : 'حضور دارم' }}
@@ -33,7 +35,7 @@
         <button
           type="button"
           class="ghost-button"
-          [disabled]="statusState.isSubmittingAvailable || !statusState.isAvailable"
+          [disabled]="statusState.isLoading || statusState.isSubmittingAvailable || !statusState.isAvailable || statusState.isOnline"
           (click)="setAvailable(false)"
         >
           {{ statusState.isSubmittingAvailable ? 'در حال ثبت...' : 'حضور ندارم' }}
@@ -55,12 +57,13 @@
       </div>
 
       <p class="status-hint" *ngIf="!statusState.isAvailable">برای آنلاین شدن ابتدا باید حضور خود را ثبت کنید.</p>
+      <p class="status-hint" *ngIf="statusState.isAvailable && statusState.isOnline">برای ثبت عدم حضور، ابتدا وضعیت دریافت لید را آفلاین کنید.</p>
 
       <div class="status-actions">
         <button
           type="button"
           class="success-button"
-          [disabled]="statusState.isSubmittingOnline || statusState.isOnline || !statusState.isAvailable"
+          [disabled]="statusState.isLoading || statusState.isSubmittingOnline || statusState.isOnline || !statusState.isAvailable"
           (click)="setOnlineOffline(true)"
         >
           {{ statusState.isSubmittingOnline ? 'در حال ثبت...' : 'آنلاین هستم' }}
@@ -68,7 +71,7 @@
         <button
           type="button"
           class="ghost-button"
-          [disabled]="statusState.isSubmittingOnline || !statusState.isOnline"
+          [disabled]="statusState.isLoading || statusState.isSubmittingOnline || !statusState.isOnline"
           (click)="setOnlineOffline(false)"
         >
           {{ statusState.isSubmittingOnline ? 'در حال ثبت...' : 'آفلاین هستم' }}
