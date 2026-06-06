@@ -43,6 +43,7 @@ export class LeadAssignmentService {
 
   private buildParams(query: GetLeadsQueryParams): HttpParams {
     let params = new HttpParams()
+      .set('ProfileId', query.ProfileId)
       .set('PageNumber', query.PageNumber)
       .set('PageSize', query.PageSize);
 

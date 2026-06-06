@@ -11,6 +11,7 @@ export interface LeadAssignmentItem {
 }
 
 export interface GetLeadsQueryParams {
+  ProfileId: number;
   leadAssignmentState?: 'New' | 'Pending' | 'Contacted' | 'Rejected';
   LeadAssignmentType?: 'OfflineQueue';
   PageNumber: number;

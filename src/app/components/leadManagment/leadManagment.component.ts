@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { GetLeadsQueryParams, LeadAssignmentItem, LeadFilter } from '../../models/lead-assignment.model';
 import { LeadAssignmentService } from '../../services/lead-assignment.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 
 @Component({
   selector: 'app-lead-management',
@@ -22,7 +23,10 @@ export class LeadManagmentComponent implements OnInit {
   isLoading = false;
   readonly pageSizeOptions = [5, 10, 20, 50];
 
-  constructor(private readonly leadAssignmentService: LeadAssignmentService) {}
+  constructor(
+    private readonly leadAssignmentService: LeadAssignmentService,
+    private readonly authSession: AuthSessionService
+  ) {}
 
   ngOnInit(): void {
     this.loadLeads();
@@ -99,6 +103,7 @@ export class LeadManagmentComponent implements OnInit {
 
   private buildQuery(): GetLeadsQueryParams {
     const query: GetLeadsQueryParams = {
+      ProfileId: this.authSession.getSession()?.profileId ?? 0,
       PageNumber: this.pageNumber,
       PageSize: this.pageSize
     };
