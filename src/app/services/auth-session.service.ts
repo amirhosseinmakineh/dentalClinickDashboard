@@ -37,14 +37,18 @@ export class AuthSessionService {
       return null;
     }
 
+    const completedProfileId = Number(profileId);
+    const hasCompletedProfileId = Number.isFinite(completedProfileId) && completedProfileId > 0;
+
     localStorage.setItem(this.completedProfileStorageKey, 'true');
 
-    if (profileId && Number.isFinite(profileId) && profileId > 0) {
-      localStorage.setItem(this.profileIdStorageKey, `${profileId}`);
+    if (hasCompletedProfileId) {
+      localStorage.setItem(this.profileIdStorageKey, `${completedProfileId}`);
     }
 
     return {
       ...session,
+      profileId: hasCompletedProfileId ? completedProfileId : session.profileId,
       isCompleteProfile: true
     };
   }
