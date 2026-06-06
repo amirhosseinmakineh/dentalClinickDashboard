@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
-import { ConsultantStatusState } from '../../models/consultant-status.model';
+import { ConsultantStatusSnapshot, ConsultantStatusState } from '../../models/consultant-status.model';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { ConsultantStatusService } from '../../services/consultant-status.service';
 
@@ -13,21 +13,26 @@ import { ConsultantStatusService } from '../../services/consultant-status.servic
   templateUrl: './consultant-dashboard.component.html',
   styleUrl: './consultant-dashboard.component.scss'
 })
-export class ConsultantDashboardComponent {
+export class ConsultantDashboardComponent implements OnInit {
   private readonly authSession = inject(AuthSessionService);
   private readonly consultantStatusService = inject(ConsultantStatusService);
   private readonly toastr = inject(ToastrService);
 
   statusState: ConsultantStatusState = {
-    profileId: this.authSession.getSession()?.profileId ?? 1,
+    profileId: this.authSession.getSession()?.profileId ?? 0,
     isAvailable: false,
     isOnline: false,
+    isLoading: true,
     isSubmittingAvailable: false,
     isSubmittingOnline: false
   };
 
+  ngOnInit(): void {
+    this.loadStatus();
+  }
+
   setAvailable(isAvailable: boolean): void {
-    if (this.statusState.isSubmittingAvailable) {
+    if (this.statusState.isSubmittingAvailable || (!isAvailable && this.statusState.isOnline)) {
       return;
     }
 
@@ -48,11 +53,11 @@ export class ConsultantDashboardComponent {
           return;
         }
 
-        this.statusState = {
-          ...this.statusState,
+        this.applyStatus(result.data ?? {
+          profileId: this.statusState.profileId,
           isAvailable,
           isOnline: isAvailable ? this.statusState.isOnline : false
-        };
+        });
         this.toastr.success(result.message || 'وضعیت حضور ثبت شد.');
       });
   }
@@ -83,11 +88,42 @@ export class ConsultantDashboardComponent {
           return;
         }
 
-        this.statusState = {
-          ...this.statusState,
+        this.applyStatus(result.data ?? {
+          profileId: this.statusState.profileId,
+          isAvailable: this.statusState.isAvailable,
           isOnline
-        };
+        });
         this.toastr.success(result.message || 'وضعیت دریافت لید ثبت شد.');
       });
+  }
+
+  private loadStatus(): void {
+    this.statusState = {
+      ...this.statusState,
+      isLoading: true
+    };
+
+    this.consultantStatusService
+      .getStatus(this.statusState.profileId)
+      .pipe(finalize(() => (this.statusState = { ...this.statusState, isLoading: false })))
+      .subscribe((result) => {
+        if (!result.isSuccess) {
+          this.toastr.error(result.message || 'دریافت وضعیت مشاور ناموفق بود.');
+          return;
+        }
+
+        if (result.data) {
+          this.applyStatus(result.data);
+        }
+      });
+  }
+
+  private applyStatus(status: ConsultantStatusSnapshot): void {
+    this.statusState = {
+      ...this.statusState,
+      profileId: status.profileId,
+      isAvailable: status.isAvailable,
+      isOnline: status.isAvailable && status.isOnline
+    };
   }
 }
