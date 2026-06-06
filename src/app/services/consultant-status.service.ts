@@ -17,29 +17,25 @@ export class ConsultantStatusService {
   ) {}
 
   getStatus(profileId: number): Observable<ApiResult<ConsultantStatusSnapshot>> {
-    return this.http
-      .get<ConsultantStatusApiResult>(`${this.apiBaseUrl}/GetConsultantStatus`, {
-        headers: this.getAuthorizationHeaders(),
-        params: { profileId }
-      })
-      .pipe(
-        map((response) => this.normalizeResult(response, this.getStoredStatus(profileId))),
-        tap((result) => {
-          if (result.isSuccess && result.data) {
-            this.storeStatus(result.data);
-          }
-        }),
-        catchError((error: HttpErrorResponse) => of(this.toStatusFailureResult(error, profileId)))
-      );
+    return of({
+      isSuccess: true,
+      message: '',
+      data: this.getStoredStatus(profileId)
+    });
   }
 
   setAvailable(command: SetAvailableCommand): Observable<ApiResult<ConsultantStatusSnapshot>> {
+    const nextStatus = this.mergeWithStoredStatus(command.profileId, {
+      isAvailable: command.isAvailable,
+      isOnline: command.isAvailable ? undefined : false
+    });
+
     return this.http
       .post<ConsultantStatusApiResult>(`${this.apiBaseUrl}/SetAvalableConsultant`, command, {
         headers: this.getAuthorizationHeaders()
       })
       .pipe(
-        map((response) => this.normalizeResult(response, this.mergeWithStoredStatus(command.profileId, { isAvailable: command.isAvailable, isOnline: command.isAvailable ? undefined : false }))),
+        map((response) => this.normalizeResult(response, nextStatus)),
         tap((result) => {
           if (result.isSuccess && result.data) {
             this.storeStatus(result.data);
@@ -50,12 +46,14 @@ export class ConsultantStatusService {
   }
 
   setOnlineOffline(command: SetOnlineOfflineCommand): Observable<ApiResult<ConsultantStatusSnapshot>> {
+    const nextStatus = this.mergeWithStoredStatus(command.profileId, { isOnline: command.isOnline });
+
     return this.http
       .post<ConsultantStatusApiResult>(`${this.apiBaseUrl}/SetOnlineOfflineConsultant`, command, {
         headers: this.getAuthorizationHeaders()
       })
       .pipe(
-        map((response) => this.normalizeResult(response, this.mergeWithStoredStatus(command.profileId, { isOnline: command.isOnline }))),
+        map((response) => this.normalizeResult(response, nextStatus)),
         tap((result) => {
           if (result.isSuccess && result.data) {
             this.storeStatus(result.data);
@@ -80,8 +78,7 @@ export class ConsultantStatusService {
     };
   }
 
-  private toStatusFailureResult(error: HttpErrorResponse, profileId: number): ApiResult<ConsultantStatusSnapshot> {
-    const storedStatus = this.getStoredStatus(profileId);
+  private toFailureResult(error: HttpErrorResponse, profileId: number): ApiResult<ConsultantStatusSnapshot> {
     const body = error.error as ConsultantStatusApiResult | string | null;
 
     if (storedStatus) {
@@ -91,20 +88,6 @@ export class ConsultantStatusService {
         data: storedStatus
       };
     }
-
-    if (body && typeof body === 'object') {
-      return this.normalizeResult(body, this.getDefaultStatus(profileId));
-    }
-
-    return {
-      isSuccess: false,
-      message: typeof body === 'string' && body.trim() ? body : error.message,
-      data: this.getDefaultStatus(profileId)
-    };
-  }
-
-  private toFailureResult(error: HttpErrorResponse, profileId: number): ApiResult<ConsultantStatusSnapshot> {
-    const body = error.error as ConsultantStatusApiResult | string | null;
 
     if (body && typeof body === 'object') {
       return this.normalizeResult(body, this.getStoredStatus(profileId));
