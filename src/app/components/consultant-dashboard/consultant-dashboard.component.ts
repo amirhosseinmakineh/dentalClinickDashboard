@@ -32,18 +32,22 @@ export class ConsultantDashboardComponent implements OnInit {
   }
 
   setAvailable(isAvailable: boolean): void {
-    if (this.statusState.isSubmittingAvailable || (!isAvailable && this.statusState.isOnline)) {
+    const profileId = this.getProfileId();
+
+    if (!profileId || this.statusState.isSubmittingAvailable || (!isAvailable && this.statusState.isOnline)) {
+      this.showMissingProfileIdError(profileId);
       return;
     }
 
     this.statusState = {
       ...this.statusState,
+      profileId,
       isSubmittingAvailable: true
     };
 
     this.consultantStatusService
       .setAvailable({
-        profileId: this.statusState.profileId,
+        profileId,
         isAvailable
       })
       .pipe(finalize(() => (this.statusState = { ...this.statusState, isSubmittingAvailable: false })))
@@ -63,18 +67,22 @@ export class ConsultantDashboardComponent implements OnInit {
   }
 
   setOnlineOffline(isOnline: boolean): void {
-    if (this.statusState.isSubmittingOnline || (isOnline && !this.statusState.isAvailable)) {
+    const profileId = this.getProfileId();
+
+    if (!profileId || this.statusState.isSubmittingOnline || (isOnline && !this.statusState.isAvailable)) {
+      this.showMissingProfileIdError(profileId);
       return;
     }
 
     this.statusState = {
       ...this.statusState,
+      profileId,
       isSubmittingOnline: true
     };
 
     this.consultantStatusService
       .setOnlineOffline({
-        profileId: this.statusState.profileId,
+        profileId,
         isOnline
       })
       .pipe(finalize(() => (this.statusState = { ...this.statusState, isSubmittingOnline: false })))
@@ -98,13 +106,22 @@ export class ConsultantDashboardComponent implements OnInit {
   }
 
   private loadStatus(): void {
+    const profileId = this.getProfileId();
+
     this.statusState = {
       ...this.statusState,
+      profileId,
       isLoading: true
     };
 
+    if (!profileId) {
+      this.statusState = { ...this.statusState, isLoading: false };
+      this.toastr.error('شناسه پروفایل مشاور پیدا نشد. لطفاً دوباره وارد شوید.');
+      return;
+    }
+
     this.consultantStatusService
-      .getStatus(this.statusState.profileId)
+      .getStatus(profileId)
       .pipe(finalize(() => (this.statusState = { ...this.statusState, isLoading: false })))
       .subscribe((result) => {
         if (!result.isSuccess) {
@@ -116,6 +133,17 @@ export class ConsultantDashboardComponent implements OnInit {
           this.applyStatus(result.data);
         }
       });
+  }
+
+  private getProfileId(): number {
+    const profileId = this.authSession.getSession()?.profileId ?? this.statusState.profileId;
+    return Number.isFinite(profileId) && profileId > 0 ? profileId : 0;
+  }
+
+  private showMissingProfileIdError(profileId: number): void {
+    if (!profileId) {
+      this.toastr.error('شناسه پروفایل مشاور پیدا نشد. لطفاً دوباره وارد شوید.');
+    }
   }
 
   private applyStatus(status: ConsultantStatusSnapshot): void {
