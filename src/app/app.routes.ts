@@ -7,6 +7,8 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { authGuard } from './guards/auth.guard';
 import { LeadManagmentComponent } from './components/leadManagment/leadManagment.component';
+import { ConsultantProfileCompletionComponent } from './components/consultant-profile-completion/consultant-profile-completion.component';
+import { consultantProfileGuard, incompleteConsultantProfileGuard } from './guards/consultant-profile.guard';
 
 export const routes: Routes = [
   {
@@ -34,7 +36,7 @@ export const routes: Routes = [
     path: 'dashboard',
     component: ConsultantDashboardComponent,
     title: 'داشبورد مشاور دلخند',
-    canActivate: [authGuard]
+    canActivate: [authGuard, consultantProfileGuard]
   },
   {
   path: 'consultant',
@@ -43,14 +45,22 @@ export const routes: Routes = [
   canActivate: [authGuard],
   children: [
     {
+      path: 'complete-profile',
+      component: ConsultantProfileCompletionComponent,
+      title: 'تکمیل پروفایل مشاور',
+      canActivate: [incompleteConsultantProfileGuard]
+    },
+    {
       path: 'dashboard',
       component: ConsultantDashboardComponent,
-      title: 'داشبورد مشاور'
+      title: 'داشبورد مشاور',
+      canActivate: [consultantProfileGuard]
     },
     {
       path: 'leadManagment',
       component: LeadManagmentComponent,
-      title: 'مدیریت لید ها'
+      title: 'مدیریت لید ها',
+      canActivate: [consultantProfileGuard]
     },
     {
       path: '',
